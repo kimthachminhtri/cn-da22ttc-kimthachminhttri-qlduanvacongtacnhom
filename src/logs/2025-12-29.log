@@ -1,0 +1,6 @@
+[2025-12-29 00:16:39] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-29 00:30:21] [WARNING] Failed login attempt {"email":"pm.duc@techviet.vn","ip":"::1"}
+[2025-12-29 00:30:51] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-29 00:30:51] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-29 11:36:12] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-29 11:36:12] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
