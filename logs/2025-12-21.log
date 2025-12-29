@@ -1,0 +1,102 @@
+[2025-12-21 04:24:54] [INFO] User data from DB {"user_id":"user-2","email":"manager@taskflow.com","role":"manager","role_type":"string"}
+[2025-12-21 04:24:54] [INFO] User logged in {"user_id":"user-2","email":"manager@taskflow.com"}
+[2025-12-21 04:26:05] [INFO] User logged out {"user_id":"user-2"}
+[2025-12-21 04:26:08] [INFO] User data from DB {"user_id":"user-3","email":"designer@taskflow.com","role":"member","role_type":"string"}
+[2025-12-21 04:26:08] [INFO] User logged in {"user_id":"user-3","email":"designer@taskflow.com"}
+[2025-12-21 04:26:22] [INFO] User logged out {"user_id":"user-3"}
+[2025-12-21 04:26:25] [INFO] User data from DB {"user_id":"user-2","email":"manager@taskflow.com","role":"manager","role_type":"string"}
+[2025-12-21 04:26:25] [INFO] User logged in {"user_id":"user-2","email":"manager@taskflow.com"}
+[2025-12-21 04:40:57] [INFO] User logged out {"user_id":"user-2"}
+[2025-12-21 04:40:59] [INFO] User data from DB {"user_id":"user-3","email":"designer@taskflow.com","role":"member","role_type":"string"}
+[2025-12-21 04:40:59] [INFO] User logged in {"user_id":"user-3","email":"designer@taskflow.com"}
+[2025-12-21 04:42:23] [INFO] User logged out {"user_id":"user-3"}
+[2025-12-21 04:42:25] [INFO] User data from DB {"user_id":"user-2","email":"manager@taskflow.com","role":"manager","role_type":"string"}
+[2025-12-21 04:42:25] [INFO] User logged in {"user_id":"user-2","email":"manager@taskflow.com"}
+[2025-12-21 04:46:20] [INFO] User logged out {"user_id":"user-2"}
+[2025-12-21 04:46:23] [INFO] User data from DB {"user_id":"user-3","email":"designer@taskflow.com","role":"member","role_type":"string"}
+[2025-12-21 04:46:23] [INFO] User logged in {"user_id":"user-3","email":"designer@taskflow.com"}
+[2025-12-21 04:46:35] [INFO] User logged out {"user_id":"user-3"}
+[2025-12-21 04:46:39] [INFO] User data from DB {"user_id":"user-2","email":"manager@taskflow.com","role":"manager","role_type":"string"}
+[2025-12-21 04:46:39] [INFO] User logged in {"user_id":"user-2","email":"manager@taskflow.com"}
+[2025-12-21 04:46:54] [INFO] User logged out {"user_id":"user-2"}
+[2025-12-21 04:46:57] [INFO] User data from DB {"user_id":"user-3","email":"designer@taskflow.com","role":"member","role_type":"string"}
+[2025-12-21 04:46:57] [INFO] User logged in {"user_id":"user-3","email":"designer@taskflow.com"}
+[2025-12-21 04:47:06] [INFO] User logged out {"user_id":"user-3"}
+[2025-12-21 04:47:07] [INFO] User data from DB {"user_id":"user-3","email":"designer@taskflow.com","role":"member","role_type":"string"}
+[2025-12-21 04:47:07] [INFO] User logged in {"user_id":"user-3","email":"designer@taskflow.com"}
+[2025-12-21 04:47:20] [INFO] User logged out {"user_id":"user-3"}
+[2025-12-21 04:47:21] [INFO] User data from DB {"user_id":"user-3","email":"designer@taskflow.com","role":"member","role_type":"string"}
+[2025-12-21 04:47:21] [INFO] User logged in {"user_id":"user-3","email":"designer@taskflow.com"}
+[2025-12-21 04:47:23] [INFO] User logged out {"user_id":"user-3"}
+[2025-12-21 04:47:26] [INFO] User data from DB {"user_id":"user-2","email":"manager@taskflow.com","role":"manager","role_type":"string"}
+[2025-12-21 04:47:26] [INFO] User logged in {"user_id":"user-2","email":"manager@taskflow.com"}
+[2025-12-21 05:01:02] [INFO] User logged out {"user_id":"user-2"}
+[2025-12-21 05:01:06] [INFO] User data from DB {"user_id":"user-3","email":"designer@taskflow.com","role":"member","role_type":"string"}
+[2025-12-21 05:01:06] [INFO] User logged in {"user_id":"user-3","email":"designer@taskflow.com"}
+[2025-12-21 05:01:12] [INFO] User logged out {"user_id":"user-3"}
+[2025-12-21 05:01:15] [INFO] User data from DB {"user_id":"user-2","email":"manager@taskflow.com","role":"manager","role_type":"string"}
+[2025-12-21 05:01:15] [INFO] User logged in {"user_id":"user-2","email":"manager@taskflow.com"}
+[2025-12-21 08:06:18] [WARNING] Failed login attempt {"email":"manager@taskflow.com","ip":"::1"}
+[2025-12-21 08:07:44] [WARNING] Failed login attempt {"email":"ceo@techviet.vn","ip":"::1"}
+[2025-12-21 08:18:06] [INFO] User data from DB {"user_id":"usr-001","email":"ceo@techviet.vn","role":"admin","role_type":"string"}
+[2025-12-21 08:18:06] [INFO] User logged in {"user_id":"usr-001","email":"ceo@techviet.vn"}
+[2025-12-21 08:18:39] [INFO] User logged out {"user_id":"usr-001"}
+[2025-12-21 08:19:05] [INFO] User data from DB {"user_id":"usr-002","email":"cto@techviet.vn","role":"admin","role_type":"string"}
+[2025-12-21 08:19:05] [INFO] User logged in {"user_id":"usr-002","email":"cto@techviet.vn"}
+[2025-12-21 08:19:49] [INFO] User logged out {"user_id":"usr-002"}
+[2025-12-21 08:20:09] [INFO] User data from DB {"user_id":"usr-003","email":"pm.linh@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-21 08:20:09] [INFO] User logged in {"user_id":"usr-003","email":"pm.linh@techviet.vn"}
+[2025-12-21 08:20:47] [INFO] User logged out {"user_id":"usr-003"}
+[2025-12-21 08:21:33] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-21 08:21:33] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-21 08:21:56] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-21 08:22:01] [INFO] User data from DB {"user_id":"usr-007","email":"dev.khanh@techviet.vn","role":"member","role_type":"string"}
+[2025-12-21 08:22:01] [INFO] User logged in {"user_id":"usr-007","email":"dev.khanh@techviet.vn"}
+[2025-12-21 08:22:35] [INFO] User logged out {"user_id":"usr-007"}
+[2025-12-21 08:22:55] [INFO] User data from DB {"user_id":"usr-008","email":"dev.hoa@techviet.vn","role":"member","role_type":"string"}
+[2025-12-21 08:22:55] [INFO] User logged in {"user_id":"usr-008","email":"dev.hoa@techviet.vn"}
+[2025-12-21 08:25:50] [INFO] User logged out {"user_id":"usr-008"}
+[2025-12-21 08:25:59] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-21 08:25:59] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-21 08:27:09] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-21 08:27:19] [INFO] User data from DB {"user_id":"usr-001","email":"ceo@techviet.vn","role":"admin","role_type":"string"}
+[2025-12-21 08:27:19] [INFO] User logged in {"user_id":"usr-001","email":"ceo@techviet.vn"}
+[2025-12-21 08:28:25] [INFO] User logged out {"user_id":"usr-001"}
+[2025-12-21 08:28:32] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-21 08:28:32] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-21 08:31:01] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-21 08:31:38] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-21 08:31:38] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-21 08:31:38] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-21 08:31:38] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-21 08:31:39] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-21 08:31:39] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-21 08:31:43] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-21 08:31:53] [INFO] User data from DB {"user_id":"usr-003","email":"pm.linh@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-21 08:31:53] [INFO] User logged in {"user_id":"usr-003","email":"pm.linh@techviet.vn"}
+[2025-12-21 08:37:14] [INFO] User logged out {"user_id":"usr-003"}
+[2025-12-21 08:37:20] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-21 08:37:20] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-21 09:09:55] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-21 09:10:04] [INFO] User data from DB {"user_id":"usr-001","email":"ceo@techviet.vn","role":"admin","role_type":"string"}
+[2025-12-21 09:10:04] [INFO] User logged in {"user_id":"usr-001","email":"ceo@techviet.vn"}
+[2025-12-21 09:12:08] [INFO] User logged out {"user_id":"usr-001"}
+[2025-12-21 09:12:55] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-21 09:12:55] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-21 09:13:09] [INFO] User data from DB {"user_id":"usr-001","email":"ceo@techviet.vn","role":"admin","role_type":"string"}
+[2025-12-21 09:13:09] [INFO] User logged in {"user_id":"usr-001","email":"ceo@techviet.vn"}
+[2025-12-21 09:18:57] [INFO] User logged out {"user_id":"usr-001"}
+[2025-12-21 09:19:02] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-21 09:19:02] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-21 09:22:22] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-21 09:22:25] [INFO] User data from DB {"user_id":"usr-001","email":"ceo@techviet.vn","role":"admin","role_type":"string"}
+[2025-12-21 09:22:25] [INFO] User logged in {"user_id":"usr-001","email":"ceo@techviet.vn"}
+[2025-12-21 09:24:44] [INFO] User logged out {"user_id":"usr-001"}
+[2025-12-21 09:24:53] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-21 09:24:53] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-21 09:36:23] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-21 09:36:27] [INFO] User data from DB {"user_id":"usr-001","email":"ceo@techviet.vn","role":"admin","role_type":"string"}
+[2025-12-21 09:36:27] [INFO] User logged in {"user_id":"usr-001","email":"ceo@techviet.vn"}
+[2025-12-21 09:41:57] [INFO] User logged out {"user_id":"usr-001"}
+[2025-12-21 09:42:02] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-21 09:42:02] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
