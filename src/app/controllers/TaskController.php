@@ -27,7 +27,7 @@ class TaskController extends BaseController
 
     public function index(): void
     {
-        $tasks = $this->taskModel->getUserTasks($this->userId());
+        $tasks = $this->taskModel->getUserTasks($this->userId(), $this->userRole());
         $projects = $this->projectModel->getUserProjects($this->userId());
         $users = $this->userModel->getActive();
         
@@ -45,7 +45,11 @@ class TaskController extends BaseController
         $task = $this->taskModel->getWithDetails($id);
         
         if (!$task) {
-            $this->redirect('/php/tasks.php');
+            http_response_code(404);
+            $this->view('errors/404', [
+                'message' => 'Công việc không tồn tại hoặc đã bị xóa.',
+                'pageTitle' => 'Không tìm thấy'
+            ]);
             return;
         }
         
@@ -72,7 +76,8 @@ class TaskController extends BaseController
         }
 
         $errors = $this->validate([
-            'title' => 'required|min:2',
+            'title' => 'required|min:2|max:255',
+            'dueDate' => 'date_future',
         ]);
 
         if (!empty($errors)) {
@@ -180,7 +185,47 @@ class TaskController extends BaseController
         if ($this->isAdmin()) return true;
         if ($task['created_by'] === $this->userId()) return true;
         
+        // Check project permission
+        if (!empty($task['project_id'])) {
+            $projectRole = $this->getProjectRole($task['project_id'], $this->userId());
+            if (in_array($projectRole, ['owner', 'manager'])) {
+                return true;
+            }
+        }
+        
         return PermissionMiddleware::can('tasks.delete');
+    }
+
+    /**
+     * Get user's role in a specific project
+     * 
+     * @param string $projectId Project ID
+     * @param string $userId User ID
+     * @return string|null Role name or null if not a member
+     */
+    private function getProjectRole(string $projectId, string $userId): ?string
+    {
+        $db = \Core\Database::getInstance();
+        $member = $db->fetchOne(
+            "SELECT role FROM project_members WHERE project_id = ? AND user_id = ?",
+            [$projectId, $userId]
+        );
+        
+        return $member['role'] ?? null;
+    }
+
+    /**
+     * Check if user has specific role in project
+     * 
+     * @param string $projectId Project ID
+     * @param string $userId User ID
+     * @param array $allowedRoles Array of allowed roles
+     * @return bool
+     */
+    private function hasProjectRole(string $projectId, string $userId, array $allowedRoles): bool
+    {
+        $role = $this->getProjectRole($projectId, $userId);
+        return $role !== null && in_array($role, $allowedRoles);
     }
 
     private function generateUUID(): string

@@ -125,28 +125,33 @@ class User extends BaseModel
     {
         $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
         $maxSize = 2 * 1024 * 1024; // 2MB
-        
-        if (!in_array($file['type'], $allowedTypes)) {
-            return ['success' => false, 'message' => 'Chỉ chấp nhận file ảnh JPG, PNG, WebP, GIF'];
-        }
-        
+
         if ($file['size'] > $maxSize) {
             return ['success' => false, 'message' => 'File ảnh không được vượt quá 2MB'];
         }
-        
+
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($file['tmp_name']) ?: ($file['type'] ?? '');
+
+        if (!in_array($mime, $allowedTypes)) {
+            return ['success' => false, 'message' => 'Chỉ chấp nhận file ảnh JPG, PNG, WebP, GIF'];
+        }
+
         $uploadDir = BASE_PATH . '/uploads/avatars/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
-        
-        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = $userId . '_' . time() . '.' . $ext;
+
+        $mimeToExt = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif'];
+        $ext = $mimeToExt[$mime] ?? pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = $userId . '_' . bin2hex(random_bytes(8)) . '.' . $ext;
         $filepath = $uploadDir . $filename;
-        
+
         if (!move_uploaded_file($file['tmp_name'], $filepath)) {
             return ['success' => false, 'message' => 'Không thể lưu file'];
         }
-        
+        @chmod($filepath, 0644);
+
         // Delete old avatar
         $user = $this->find($userId);
         if (!empty($user['avatar_url'])) {

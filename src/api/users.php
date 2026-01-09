@@ -11,8 +11,13 @@ use Core\Session;
 header('Content-Type: application/json');
 
 AuthMiddleware::handle();
-
 $method = $_SERVER['REQUEST_METHOD'];
+
+// Enforce CSRF for non-GET requests
+require_once BASE_PATH . '/includes/csrf.php';
+if ($method !== 'GET') {
+    csrf_require();
+}
 $currentUserId = Session::get('user_id');
 $userRole = Session::get('user_role');
 

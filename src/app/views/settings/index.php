@@ -42,6 +42,7 @@ View::section('content');
         </div>
         
         <form method="POST" action="/php/api/update-profile.php" class="p-6 space-y-6">
+            <input type="hidden" name="_token" value="<?= \Core\CSRF::generate() ?>">
             <!-- Avatar -->
             <div class="flex items-center gap-6">
                 <div class="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden" id="avatar-preview">
@@ -106,6 +107,7 @@ View::section('content');
         </div>
         
         <form method="POST" action="/php/api/change-password.php" class="p-6 space-y-4">
+            <input type="hidden" name="_token" value="<?= \Core\CSRF::generate() ?>">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Mật khẩu hiện tại</label>
                 <input type="password" name="current_password" required
@@ -139,6 +141,7 @@ View::section('content');
         </div>
         
         <form method="POST" action="/php/api/update-settings.php" class="p-6 space-y-4">
+            <input type="hidden" name="_token" value="<?= \Core\CSRF::generate() ?>">
             <?php 
             $options = [
                 ['id' => 'task_assigned', 'key' => 'notification_task_assigned', 'title' => 'Được giao công việc', 'desc' => 'Khi bạn được giao một công việc mới'],
@@ -179,6 +182,7 @@ View::section('content');
         </div>
         
         <form method="POST" action="/php/api/update-settings.php" class="p-6 space-y-6">
+            <input type="hidden" name="_token" value="<?= \Core\CSRF::generate() ?>">
             <?php $currentTheme = $settings['theme'] ?? 'light'; ?>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-3">Chế độ màu</label>

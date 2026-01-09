@@ -40,28 +40,59 @@ View::section('content');
                 </a>
             </div>
             
-            <?php if (Permission::can($userRole, 'reports.export')): ?>
             <!-- Export Button -->
             <div class="relative" x-data="{ open: false }">
                 <button @click="open = !open" 
-                        class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                        class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90">
                     <i data-lucide="download" class="h-4 w-4"></i>
                     Xuất báo cáo
                     <i data-lucide="chevron-down" class="h-4 w-4"></i>
                 </button>
                 <div x-show="open" @click.away="open = false" x-cloak
-                     class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-                    <button onclick="exportReport('tasks', 'csv')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
-                        <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
-                        Công việc (CSV)
+                     class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-20">
+                    <div class="px-3 py-2 border-b border-gray-100">
+                        <p class="text-xs font-semibold text-gray-400 uppercase">Công việc của tôi</p>
+                    </div>
+                    <button onclick="exportReport('my-tasks', 'excel')" class="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                        <i data-lucide="file-spreadsheet" class="h-4 w-4 text-green-600"></i>
+                        Xuất Excel (.xlsx)
                     </button>
-                    <button onclick="exportReport('projects', 'csv')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
-                        <i data-lucide="file-spreadsheet" class="h-4 w-4"></i>
-                        Dự án (CSV)
+                    <button onclick="exportReport('my-tasks', 'pdf')" class="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                        <i data-lucide="file-text" class="h-4 w-4 text-red-600"></i>
+                        Xuất PDF
                     </button>
+                    <button onclick="exportReport('my-tasks', 'csv')" class="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                        <i data-lucide="file" class="h-4 w-4 text-blue-600"></i>
+                        Xuất CSV
+                    </button>
+                    
+                    <div class="px-3 py-2 border-t border-b border-gray-100 mt-1">
+                        <p class="text-xs font-semibold text-gray-400 uppercase">Tổng hợp</p>
+                    </div>
+                    <button onclick="exportReport('project-summary', 'excel')" class="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                        <i data-lucide="folder" class="h-4 w-4 text-amber-600"></i>
+                        Tổng hợp dự án (Excel)
+                    </button>
+                    <button onclick="exportReport('overdue-tasks', 'excel')" class="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                        <i data-lucide="alert-triangle" class="h-4 w-4 text-rose-600"></i>
+                        Công việc quá hạn (Excel)
+                    </button>
+                    <button onclick="exportReport('weekly-report', 'pdf')" class="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                        <i data-lucide="calendar" class="h-4 w-4 text-purple-600"></i>
+                        Báo cáo tuần (PDF)
+                    </button>
+                    
+                    <?php if ($isManager): ?>
+                    <div class="px-3 py-2 border-t border-b border-gray-100 mt-1">
+                        <p class="text-xs font-semibold text-gray-400 uppercase">Quản lý</p>
+                    </div>
+                    <button onclick="exportReport('team-workload', 'excel')" class="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3">
+                        <i data-lucide="users" class="h-4 w-4 text-indigo-600"></i>
+                        Hiệu suất nhân viên (Excel)
+                    </button>
+                    <?php endif; ?>
                 </div>
             </div>
-            <?php endif; ?>
         </div>
     </div>
 
@@ -565,8 +596,8 @@ if (trendCtx) {
 
 // Export report
 function exportReport(type, format) {
-    const url = `/php/api/reports.php?action=export&type=${type}&format=${format}`;
-    window.location.href = url;
+    const url = `/php/api/export-report.php?type=${type}&format=${format}`;
+    window.open(url, '_blank');
     if (typeof showToast === 'function') {
         showToast('Đang xuất báo cáo...', 'info');
     }

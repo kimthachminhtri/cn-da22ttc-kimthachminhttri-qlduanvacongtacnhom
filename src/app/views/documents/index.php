@@ -27,11 +27,6 @@ View::section('content');
         </div>
         <div class="flex items-center gap-2">
             <?php if (Permission::can($userRole, 'documents.create')): ?>
-            <button onclick="openModal('create-folder-modal')" 
-                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
-                <i data-lucide="folder-plus" class="h-4 w-4"></i>
-                Thư mục mới
-            </button>
             <button onclick="openModal('upload-modal')" 
                     class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90">
                 <i data-lucide="upload" class="h-4 w-4"></i>
@@ -54,6 +49,24 @@ View::section('content');
         </a>
         <?php endforeach; ?>
     </nav>
+
+    <!-- Bulk Actions Toolbar -->
+    <div id="bulk-toolbar" class="hidden items-center gap-4 bg-blue-50 border border-blue-200 rounded-xl p-4">
+        <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-blue-700">
+                Đã chọn: <span id="selected-count" class="font-bold">0</span> tài liệu
+            </span>
+        </div>
+        <div class="flex items-center gap-2 ml-auto">
+            <button onclick="bulkOps.delete()" class="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm hover:bg-red-100">
+                <i data-lucide="trash-2" class="h-4 w-4"></i>
+                Xóa
+            </button>
+            <button onclick="bulkOps.clearSelection()" class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                <i data-lucide="x" class="h-4 w-4"></i>
+            </button>
+        </div>
+    </div>
 
     <!-- Toolbar -->
     <div class="flex items-center justify-between gap-4">
@@ -108,6 +121,12 @@ View::section('content');
             <div class="group relative bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-all <?= $isFolder ? 'cursor-pointer' : '' ?>"
                  <?= $isFolder ? 'onclick="openFolder(\'' . View::e($doc['id']) . '\')"' : '' ?>>
                 
+                <!-- Checkbox for bulk selection -->
+                <div class="absolute top-2 left-2 z-10">
+                    <input type="checkbox" class="bulk-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500 opacity-0 group-hover:opacity-100 checked:opacity-100 transition-opacity" 
+                           data-id="<?= View::e($doc['id']) ?>" onclick="event.stopPropagation()">
+                </div>
+                
                 <!-- Actions -->
                 <div class="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onclick="event.stopPropagation(); toggleStar('<?= View::e($doc['id']) ?>', this)" 
@@ -157,6 +176,9 @@ View::section('content');
             <table class="w-full">
                 <thead>
                     <tr class="bg-gray-50 text-left text-sm text-gray-500">
+                        <th class="px-4 py-3 w-10">
+                            <input type="checkbox" id="select-all" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        </th>
                         <th class="px-4 py-3 font-medium">Tên</th>
                         <th class="px-4 py-3 font-medium">Người tạo</th>
                         <th class="px-4 py-3 font-medium">Kích thước</th>
@@ -173,6 +195,10 @@ View::section('content');
                     ?>
                     <tr class="hover:bg-gray-50 <?= $isFolder ? 'cursor-pointer' : '' ?>"
                         <?= $isFolder ? 'onclick="openFolder(\'' . View::e($doc['id']) . '\')"' : '' ?>>
+                        <td class="px-4 py-3" onclick="event.stopPropagation()">
+                            <input type="checkbox" class="bulk-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500" 
+                                   data-id="<?= View::e($doc['id']) ?>">
+                        </td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-3">
                                 <?php if ($isStarred): ?>
@@ -226,46 +252,6 @@ View::section('content');
             <?php endif; ?>
         </div>
     <?php endif; ?>
-</div>
-
-<!-- Create Folder Modal -->
-<div id="create-folder-modal" class="fixed inset-0 z-50 hidden">
-    <div class="fixed inset-0 bg-black/50" onclick="closeModal('create-folder-modal')"></div>
-    <div class="fixed inset-0 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-xl w-full max-w-md" onclick="event.stopPropagation()">
-            <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-                <h2 class="text-lg font-semibold text-gray-900">Tạo thư mục mới</h2>
-                <button onclick="closeModal('create-folder-modal')" class="text-gray-400 hover:text-gray-600">
-                    <i data-lucide="x" class="h-5 w-5"></i>
-                </button>
-            </div>
-            <form action="/php/api/create-folder.php" method="POST" class="p-6 space-y-4">
-                <?php if ($currentFolder): ?>
-                <input type="hidden" name="parent_id" value="<?= View::e($currentFolder) ?>">
-                <?php endif; ?>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tên thư mục *</label>
-                    <input type="text" name="name" required placeholder="Nhập tên thư mục..."
-                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Dự án (tùy chọn)</label>
-                    <select name="project_id" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-                        <option value="">-- Không thuộc dự án --</option>
-                        <?php foreach ($projects ?? [] as $project): ?>
-                        <option value="<?= View::e($project['id']) ?>"><?= View::e($project['name']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="flex justify-end gap-3 pt-4">
-                    <button type="button" onclick="closeModal('create-folder-modal')" 
-                            class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">Hủy</button>
-                    <button type="submit" 
-                            class="px-4 py-2 text-sm font-medium text-white bg-primary hover:bg-primary/90 rounded-lg">Tạo thư mục</button>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 
 <!-- Upload Modal -->
@@ -399,15 +385,14 @@ function formatFileSize(bytes) {
 }
 </script>
 
+<!-- Bulk Operations Script -->
+<script src="/php/public/js/bulk-operations.js"></script>
+<script>
+    const bulkOps = new BulkOperations({ entity: 'documents' });
+</script>
+
 <?php 
-// Helper function
-function formatFileSize($bytes) {
-    if ($bytes == 0) return '0 B';
-    $k = 1024;
-    $sizes = ['B', 'KB', 'MB', 'GB'];
-    $i = floor(log($bytes) / log($k));
-    return round($bytes / pow($k, $i), 1) . ' ' . $sizes[$i];
-}
+// formatFileSize() is already defined in includes/functions.php
 
 View::endSection(); 
 ?>

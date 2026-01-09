@@ -649,8 +649,13 @@ function deleteEvent() {
     if (!currentEventId) return;
     if (!confirm('Bạn có chắc muốn xóa sự kiện này?')) return;
     
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    
     fetch(`/php/api/calendar.php?event_id=${currentEventId}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-Token': csrfToken
+        }
     })
     .then(r => r.json())
     .then(result => {
@@ -686,11 +691,14 @@ document.getElementById('create-event-form')?.addEventListener('submit', functio
     delete data.start_date;
     delete data.end_date;
     
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    
     fetch('/php/api/calendar.php', {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'X-CSRF-Token': csrfToken
         },
         body: JSON.stringify(data)
     })

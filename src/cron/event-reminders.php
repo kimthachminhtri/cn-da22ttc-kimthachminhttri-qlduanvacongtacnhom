@@ -4,10 +4,13 @@
  * Chạy mỗi phút để kiểm tra và gửi nhắc nhở sự kiện
  * 
  * Crontab: * * * * * php /path/to/taskflow/cron/event-reminders.php
+ * 
+ * Hoặc chạy thủ công: php cron/event-reminders.php
  */
 
-require_once __DIR__ . '/../includes/config.php';
-require_once __DIR__ . '/../includes/classes/Notification.php';
+define('CRON_RUNNING', true);
+require_once __DIR__ . '/../bootstrap.php';
+require_once BASE_PATH . '/includes/classes/Notification.php';
 
 // Prevent web access
 if (php_sapi_name() !== 'cli' && !defined('CRON_RUNNING')) {
@@ -15,7 +18,7 @@ if (php_sapi_name() !== 'cli' && !defined('CRON_RUNNING')) {
 }
 
 try {
-    $db = Database::getInstance();
+    $db = \Core\Database::getInstance();
     $now = new DateTime();
     
     echo "[" . $now->format('Y-m-d H:i:s') . "] Checking event reminders...\n";

@@ -99,8 +99,39 @@ abstract class BaseController
                     }
                 }
                 
+                // NEW: Max length validation
+                if (str_starts_with($r, 'max:')) {
+                    $max = (int) substr($r, 4);
+                    if (strlen($value) > $max) {
+                        $errors[$field] = "Trường {$field} không được vượt quá {$max} ký tự";
+                        break;
+                    }
+                }
+                
                 if ($r === 'email' && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
                     $errors[$field] = "Email không hợp lệ";
+                    break;
+                }
+                
+                // NEW: Date must be today or future
+                if ($r === 'date_future' && !empty($value)) {
+                    if (strtotime($value) < strtotime('today')) {
+                        $errors[$field] = "Ngày phải từ hôm nay trở đi";
+                        break;
+                    }
+                }
+                
+                // NEW: Date must be in past
+                if ($r === 'date_past' && !empty($value)) {
+                    if (strtotime($value) > strtotime('today')) {
+                        $errors[$field] = "Ngày phải trong quá khứ";
+                        break;
+                    }
+                }
+                
+                // NEW: Numeric validation
+                if ($r === 'numeric' && !empty($value) && !is_numeric($value)) {
+                    $errors[$field] = "Trường {$field} phải là số";
                     break;
                 }
             }

@@ -29,7 +29,11 @@ function csrf_field(): string
 function csrf_verify(?string $token = null): bool
 {
     if ($token === null) {
-        $token = $_POST['_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        // Check multiple sources for token
+        $token = $_POST['_token'] 
+            ?? $_POST['_csrf_token']
+            ?? $_SERVER['HTTP_X_CSRF_TOKEN'] 
+            ?? '';
     }
     
     if (empty($token) || empty($_SESSION['csrf_token'])) {

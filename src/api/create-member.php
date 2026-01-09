@@ -17,6 +17,10 @@ if (!auth()->can('team.manage')) {
     header('Location: ../team.php');
     exit;
 }
+require_once BASE_PATH . '/includes/csrf.php';
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+     csrf_require();
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: ../team.php');

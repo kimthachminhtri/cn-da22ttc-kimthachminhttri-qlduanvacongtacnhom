@@ -169,18 +169,23 @@ View::section('content');
             </a>
             <?php endforeach; ?>
         <?php else: ?>
-            <div class="col-span-full text-center py-12">
-                <i data-lucide="folder-open" class="h-16 w-16 mx-auto text-gray-300 mb-4"></i>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Không có dự án nào</h3>
-                <p class="text-gray-500 mb-4">Bắt đầu bằng cách tạo dự án đầu tiên của bạn</p>
-                <?php if (Permission::can($userRole, 'projects.create')): ?>
-                <button onclick="openModal('create-project-modal')" 
-                        class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90">
-                    <i data-lucide="plus" class="h-4 w-4"></i>
-                    Tạo dự án
-                </button>
-                <?php endif; ?>
-            </div>
+            <?php 
+            View::partial('components/empty-state', [
+                'icon' => 'folder-open',
+                'title' => 'Chưa có dự án nào',
+                'description' => 'Dự án giúp bạn tổ chức công việc theo nhóm. Tạo dự án đầu tiên để bắt đầu quản lý công việc hiệu quả hơn.',
+                'action' => Permission::can($userRole, 'projects.create') ? [
+                    'label' => 'Tạo dự án đầu tiên',
+                    'onclick' => "openModal('create-project-modal')",
+                    'icon' => 'plus'
+                ] : null,
+                'tips' => [
+                    'Mỗi dự án có thể có nhiều thành viên và công việc',
+                    'Sử dụng màu sắc để phân biệt các dự án',
+                    'Theo dõi tiến độ qua thanh progress'
+                ]
+            ]);
+            ?>
         <?php endif; ?>
     </div>
 </div>
@@ -199,8 +204,10 @@ View::section('content');
             </div>
             <form action="/php/api/create-project.php" method="POST" class="p-6 space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Tên dự án *</label>
-                    <input type="text" name="name" required
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Tên dự án <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="name" required aria-required="true"
                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary">
                 </div>
                 <div>
@@ -248,33 +255,100 @@ View::section('content');
 <?php endif; ?>
 
 <script>
-// Handle create project form with AJAX for better UX
-document.querySelector('#create-project-modal form')?.addEventListener('submit', function(e) {
+// Handle create project form with enhanced UX (loading states + inline errors)
+document.querySelector('#create-project-modal form')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    const formData = new FormData(this);
-    const data = Object.fromEntries(formData.entries());
+    const form = this;
+    const submitBtn = form.querySelector('[type="submit"]');
     
-    fetch('/php/api/create-project.php', {
-        method: 'POST',
-        headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(r => r.json())
-    .then(result => {
+    // Clear previous errors
+    form.querySelectorAll('.form-field-error, .form-general-error').forEach(el => el.remove());
+    form.querySelectorAll('.border-red-500').forEach(el => {
+        el.classList.remove('border-red-500');
+        el.classList.add('border-gray-300');
+    });
+    
+    // Show loading state
+    if (window.LoadingState) {
+        LoadingState.showButton(submitBtn, 'Đang tạo...');
+    } else {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<svg class="animate-spin h-4 w-4 mr-2 inline" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Đang tạo...';
+    }
+    
+    try {
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+        
+        const response = await fetch('/php/api/create-project.php', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
         if (result.success) {
+            if (typeof showToast === 'function') {
+                showToast('Tạo dự án thành công!', 'success');
+            }
             window.location.href = '/php/project-detail.php?id=' + result.project_id;
         } else {
-            alert(result.error || 'Có lỗi xảy ra');
+            // Show inline error
+            showFormError(form, result.error || 'Có lỗi xảy ra', result.field);
         }
-    })
-    .catch(err => {
-        alert('Lỗi kết nối: ' + err.message);
-    });
+    } catch (err) {
+        showFormError(form, 'Lỗi kết nối. Vui lòng kiểm tra mạng và thử lại.');
+    } finally {
+        // Hide loading state
+        if (window.LoadingState) {
+            LoadingState.hideButton(submitBtn);
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Tạo dự án';
+        }
+    }
 });
+
+// Helper function to show inline form errors
+function showFormError(form, message, fieldName = null) {
+    if (fieldName) {
+        // Field-specific error
+        const field = form.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            field.classList.add('border-red-500');
+            field.classList.remove('border-gray-300');
+            
+            const errorEl = document.createElement('div');
+            errorEl.className = 'form-field-error mt-1 flex items-center gap-1 text-sm text-red-600';
+            errorEl.innerHTML = `
+                <svg class="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                <span>${message}</span>
+            `;
+            field.parentElement.appendChild(errorEl);
+            field.focus();
+            return;
+        }
+    }
+    
+    // General error at top of form
+    const errorEl = document.createElement('div');
+    errorEl.className = 'form-general-error mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 text-sm';
+    errorEl.innerHTML = `
+        <svg class="h-5 w-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        <span class="text-red-700">${message}</span>
+    `;
+    form.insertBefore(errorEl, form.firstChild);
+    errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
 </script>
 
 <?php View::endSection(); ?>

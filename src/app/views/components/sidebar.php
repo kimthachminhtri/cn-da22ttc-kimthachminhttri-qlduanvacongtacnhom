@@ -8,14 +8,14 @@ $userRole = Session::get('user_role', 'guest');
 $isManager = in_array($userRole, ['admin', 'manager']);
 
 $navigation = [
-    ['name' => 'Tổng quan', 'href' => 'index.php', 'icon' => 'layout-dashboard'],
-    ['name' => 'Dự án', 'href' => 'projects.php', 'icon' => 'folder-kanban'],
-    ['name' => 'Công việc', 'href' => 'tasks.php', 'icon' => 'check-square'],
-    ['name' => 'Lịch', 'href' => 'calendar.php', 'icon' => 'calendar'],
-    ['name' => 'Tài liệu', 'href' => 'documents.php', 'icon' => 'file-text'],
-    ['name' => 'Nhóm', 'href' => 'team.php', 'icon' => 'users'],
-    ['name' => 'Báo cáo', 'href' => 'reports.php', 'icon' => 'bar-chart-2'],
-    ['name' => 'Cài đặt', 'href' => 'settings.php', 'icon' => 'settings'],
+    ['name' => 'Tổng quan', 'href' => 'index.php', 'icon' => 'layout-dashboard', 'permission' => null],
+    ['name' => 'Dự án', 'href' => 'projects.php', 'icon' => 'folder-kanban', 'permission' => null],
+    ['name' => 'Công việc', 'href' => 'tasks.php', 'icon' => 'check-square', 'permission' => null],
+    ['name' => 'Lịch', 'href' => 'calendar.php', 'icon' => 'calendar', 'permission' => null],
+    ['name' => 'Tài liệu', 'href' => 'documents.php', 'icon' => 'file-text', 'permission' => null],
+    ['name' => 'Nhóm', 'href' => 'team.php', 'icon' => 'users', 'permission' => null],
+    ['name' => 'Báo cáo', 'href' => 'reports.php', 'icon' => 'bar-chart-2', 'permission' => 'reports.view'],
+    ['name' => 'Cài đặt', 'href' => 'settings.php', 'icon' => 'settings', 'permission' => null],
 ];
 
 // Manager-specific navigation
@@ -26,7 +26,11 @@ $managerNav = [
 ];
 ?>
 
-<aside class="flex h-screen w-64 flex-col bg-sidebar text-sidebar-foreground">
+<!-- Sidebar với responsive support -->
+<aside class="fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 bg-sidebar text-sidebar-foreground flex flex-col h-screen"
+       :class="{ '-translate-x-full': !sidebarOpen, 'translate-x-0': sidebarOpen }"
+       x-show="sidebarOpen || window.innerWidth >= 768"
+       x-cloak>
     <!-- Logo -->
     <div class="flex h-16 items-center gap-2 px-4 border-b border-sidebar-border">
         <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
@@ -44,6 +48,11 @@ $managerNav = [
     <nav class="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
         <?php foreach ($navigation as $item): ?>
             <?php 
+            // Skip if user doesn't have permission
+            if (!empty($item['permission']) && !Permission::can($userRole, $item['permission'])) {
+                continue;
+            }
+            
             $isActive = $currentPage === basename($item['href'], '.php');
             $activeClass = $isActive 
                 ? 'bg-sidebar-primary text-sidebar-primary-foreground' 

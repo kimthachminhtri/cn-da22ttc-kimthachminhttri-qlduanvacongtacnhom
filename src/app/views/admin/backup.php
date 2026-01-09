@@ -5,12 +5,53 @@
 use Core\View;
 
 View::section('content');
+
+$backups = $backups ?? [];
+$dbStats = $dbStats ?? ['tables' => 0, 'size' => 0];
+$uploadSize = $uploadSize ?? 0;
 ?>
 
 <div class="space-y-6">
     <div>
         <h1 class="text-2xl font-bold text-gray-900">Backup & Restore</h1>
         <p class="text-gray-500 mt-1">Sao lưu và khôi phục dữ liệu hệ thống</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid gap-4 sm:grid-cols-3">
+        <div class="bg-white rounded-xl border border-gray-100 p-4">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <i data-lucide="database" class="h-5 w-5 text-blue-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Database</p>
+                    <p class="text-lg font-semibold text-gray-900"><?= $dbStats['tables'] ?> bảng / <?= $dbStats['size'] ?> MB</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
+                    <i data-lucide="hard-drive" class="h-5 w-5 text-green-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Uploads</p>
+                    <p class="text-lg font-semibold text-gray-900"><?= round($uploadSize / 1024 / 1024, 2) ?> MB</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 p-4">
+            <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <i data-lucide="archive" class="h-5 w-5 text-purple-600"></i>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Backups</p>
+                    <p class="text-lg font-semibold text-gray-900"><?= count($backups) ?> bản</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-2">
@@ -22,7 +63,7 @@ View::section('content');
                 </div>
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">Sao lưu Database</h2>
-                    <p class="text-sm text-gray-500">Tải xuống bản sao lưu SQL</p>
+                    <p class="text-sm text-gray-500">Tạo bản sao lưu SQL</p>
                 </div>
             </div>
             
@@ -32,7 +73,7 @@ View::section('content');
                     <ul class="text-sm text-gray-500 space-y-1">
                         <li class="flex items-center gap-2">
                             <i data-lucide="check" class="h-4 w-4 text-green-500"></i>
-                            Tất cả bảng dữ liệu
+                            Tất cả <?= $dbStats['tables'] ?> bảng dữ liệu
                         </li>
                         <li class="flex items-center gap-2">
                             <i data-lucide="check" class="h-4 w-4 text-green-500"></i>
@@ -45,11 +86,23 @@ View::section('content');
                     </ul>
                 </div>
                 
-                <a href="/php/admin/backup.php?download=1" 
-                   class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors">
-                    <i data-lucide="download" class="h-5 w-5"></i>
-                    Tải xuống Backup SQL
-                </a>
+                <div class="flex gap-3">
+                    <form action="/php/api/admin-maintenance.php" method="POST" class="flex-1">
+                        <input type="hidden" name="action" value="create_backup">
+                        <input type="hidden" name="_csrf_token" value="<?= \Core\CSRF::generate() ?>">
+                        <button type="submit" 
+                                class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors">
+                            <i data-lucide="plus" class="h-5 w-5"></i>
+                            Tạo Backup mới
+                        </button>
+                    </form>
+                    
+                    <a href="/php/api/admin-maintenance.php?action=download_backup" 
+                       class="inline-flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
+                        <i data-lucide="download" class="h-5 w-5"></i>
+                        Tải xuống
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -78,8 +131,10 @@ View::section('content');
                     </div>
                 </div>
                 
-                <form action="/php/api/admin-restore.php" method="POST" enctype="multipart/form-data" 
+                <form action="/php/api/admin-maintenance.php" method="POST" enctype="multipart/form-data" 
                       onsubmit="return confirm('Bạn có chắc muốn khôi phục? Dữ liệu hiện tại sẽ bị ghi đè!')">
+                    <input type="hidden" name="action" value="restore_backup">
+                    <input type="hidden" name="_csrf_token" value="<?= \Core\CSRF::generate() ?>">
                     <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
                         <input type="file" name="backup_file" accept=".sql" required
                                class="hidden" id="backup-file" onchange="updateFileName(this)">
@@ -99,6 +154,65 @@ View::section('content');
             </div>
         </div>
     </div>
+
+    <!-- Backup History -->
+    <?php if (!empty($backups)): ?>
+    <div class="bg-white rounded-2xl border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Lịch sử Backup</h2>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-gray-100">
+                        <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">Tên file</th>
+                        <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">Kích thước</th>
+                        <th class="text-left py-3 px-4 text-sm font-medium text-gray-500">Ngày tạo</th>
+                        <th class="text-right py-3 px-4 text-sm font-medium text-gray-500">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($backups as $backup): ?>
+                    <tr class="border-b border-gray-50 hover:bg-gray-50">
+                        <td class="py-3 px-4">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="file-text" class="h-4 w-4 text-gray-400"></i>
+                                <span class="text-sm text-gray-900"><?= htmlspecialchars($backup['filename']) ?></span>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 text-sm text-gray-600">
+                            <?= round($backup['size'] / 1024, 2) ?> KB
+                        </td>
+                        <td class="py-3 px-4 text-sm text-gray-600">
+                            <?= $backup['created_at'] ?>
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="/php/api/admin-maintenance.php?action=download_backup&file=<?= urlencode($backup['filename']) ?>" 
+                                   class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Tải xuống">
+                                    <i data-lucide="download" class="h-4 w-4"></i>
+                                </a>
+                                <form action="/php/api/admin-maintenance.php" method="POST" class="inline"
+                                      onsubmit="return confirm('Khôi phục từ backup này?')">
+                                    <input type="hidden" name="action" value="restore_from_file">
+                                    <input type="hidden" name="filename" value="<?= htmlspecialchars($backup['filename']) ?>">
+                                    <input type="hidden" name="_csrf_token" value="<?= \Core\CSRF::generate() ?>">
+                                    <button type="submit" class="p-2 text-green-600 hover:bg-green-50 rounded-lg" title="Khôi phục">
+                                        <i data-lucide="rotate-ccw" class="h-4 w-4"></i>
+                                    </button>
+                                </form>
+                                <button onclick="deleteBackup('<?= htmlspecialchars($backup['filename']) ?>')" 
+                                        class="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Xóa">
+                                    <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- Maintenance Tools -->
     <div class="bg-white rounded-2xl border border-gray-100 p-6">
@@ -158,17 +272,34 @@ function updateFileName(input) {
     document.getElementById('file-name').textContent = fileName;
 }
 
+async function deleteBackup(filename) {
+    if (!confirm('Xóa backup này?')) return;
+    
+    try {
+        const response = await fetch('/php/api/admin-maintenance.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete_backup', filename: filename })
+        });
+        const data = await response.json();
+        if (data.success) {
+            showToast('Đã xóa backup', 'success');
+            location.reload();
+        } else {
+            showToast(data.error || 'Có lỗi xảy ra', 'error');
+        }
+    } catch (e) {
+        showToast('Có lỗi xảy ra', 'error');
+    }
+}
+
 async function clearCache() {
     if (!confirm('Xóa tất cả file cache?')) return;
     showToast('Đang xóa cache...', 'info');
     try {
         const response = await fetch('/php/api/admin-maintenance.php?action=clear_cache');
         const data = await response.json();
-        if (data.success) {
-            showToast(data.message, 'success');
-        } else {
-            showToast(data.error || 'Có lỗi xảy ra', 'error');
-        }
+        showToast(data.success ? data.message : (data.error || 'Có lỗi'), data.success ? 'success' : 'error');
     } catch (e) {
         showToast('Có lỗi xảy ra', 'error');
     }
@@ -180,11 +311,7 @@ async function clearLogs() {
     try {
         const response = await fetch('/php/api/admin-maintenance.php?action=clear_logs');
         const data = await response.json();
-        if (data.success) {
-            showToast(data.message, 'success');
-        } else {
-            showToast(data.error || 'Có lỗi xảy ra', 'error');
-        }
+        showToast(data.success ? data.message : (data.error || 'Có lỗi'), data.success ? 'success' : 'error');
     } catch (e) {
         showToast('Có lỗi xảy ra', 'error');
     }
@@ -196,11 +323,7 @@ async function optimizeDb() {
     try {
         const response = await fetch('/php/api/admin-maintenance.php?action=optimize_db');
         const data = await response.json();
-        if (data.success) {
-            showToast(data.message, 'success');
-        } else {
-            showToast(data.error || 'Có lỗi xảy ra', 'error');
-        }
+        showToast(data.success ? data.message : (data.error || 'Có lỗi'), data.success ? 'success' : 'error');
     } catch (e) {
         showToast('Có lỗi xảy ra', 'error');
     }
@@ -215,48 +338,13 @@ async function checkHealth() {
             const health = data.data;
             const statusText = health.overall === 'ok' ? 'Hệ thống hoạt động bình thường' : 
                               (health.overall === 'warning' ? 'Có một số cảnh báo' : 'Có lỗi cần xử lý');
-            const statusType = health.overall === 'ok' ? 'success' : (health.overall === 'warning' ? 'warning' : 'error');
-            showToast(statusText, statusType);
-            
-            // Show detailed modal
-            showHealthModal(health);
+            showToast(statusText, health.overall === 'ok' ? 'success' : (health.overall === 'warning' ? 'warning' : 'error'));
         } else {
             showToast(data.error || 'Có lỗi xảy ra', 'error');
         }
     } catch (e) {
         showToast('Có lỗi xảy ra', 'error');
     }
-}
-
-function showHealthModal(health) {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4';
-    modal.innerHTML = `
-        <div class="fixed inset-0 bg-black/50" onclick="this.parentElement.remove()"></div>
-        <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Kết quả kiểm tra hệ thống</h3>
-                <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600">
-                    <i data-lucide="x" class="h-5 w-5"></i>
-                </button>
-            </div>
-            <div class="space-y-3">
-                ${Object.entries(health.checks).map(([key, check]) => `
-                    <div class="flex items-center gap-3 p-3 rounded-lg ${check.status === 'ok' ? 'bg-green-50' : (check.status === 'warning' ? 'bg-yellow-50' : 'bg-red-50')}">
-                        <i data-lucide="${check.status === 'ok' ? 'check-circle' : (check.status === 'warning' ? 'alert-triangle' : 'x-circle')}" 
-                           class="h-5 w-5 ${check.status === 'ok' ? 'text-green-600' : (check.status === 'warning' ? 'text-yellow-600' : 'text-red-600')}"></i>
-                        <div>
-                            <p class="text-sm font-medium text-gray-900 capitalize">${key}</p>
-                            <p class="text-xs text-gray-600">${check.message}</p>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-            <p class="text-xs text-gray-400 mt-4 text-right">Kiểm tra lúc: ${health.timestamp}</p>
-        </div>
-    `;
-    document.body.appendChild(modal);
-    lucide.createIcons();
 }
 </script>
 

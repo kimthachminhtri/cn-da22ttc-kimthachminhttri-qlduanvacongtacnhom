@@ -3,6 +3,10 @@
  * API: Admin Users Management
  */
 require_once __DIR__ . '/../bootstrap.php';
+require_once BASE_PATH . '/includes/csrf.php';
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    csrf_require();
+}
 
 use App\Middleware\AuthMiddleware;
 use App\Middleware\PermissionMiddleware;

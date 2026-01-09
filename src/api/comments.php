@@ -15,6 +15,7 @@ function generateCommentUUID(): string {
 ob_start();
 
 require_once __DIR__ . '/../bootstrap.php';
+require_once BASE_PATH . '/includes/functions.php'; // Ensure timeAgo() is available
 
 // Tắt display errors SAU khi load bootstrap
 ini_set('display_errors', 0);
@@ -39,6 +40,12 @@ set_error_handler(function($errno, $errstr, $errfile, $errline) {
 try {
     AuthMiddleware::handle();
     
+    // Enforce CSRF for state-changing requests
+    require_once BASE_PATH . '/includes/csrf.php';
+    if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+        csrf_require();
+    }
+
     $method = $_SERVER['REQUEST_METHOD'];
     $currentUserId = Session::get('user_id');
     $db = Database::getInstance();
@@ -126,6 +133,16 @@ try {
             
             if (!$entityId || empty($content)) {
                 throw new Exception('entity_id and content are required');
+            }
+            
+            // Sanitize content to prevent XSS
+            // Allow basic formatting but strip dangerous tags
+            $content = strip_tags($content, '<b><i><u><strong><em><br><p>');
+            $content = htmlspecialchars($content, ENT_QUOTES, 'UTF-8');
+            
+            // Limit content length
+            if (strlen($content) > 10000) {
+                throw new Exception('Nội dung bình luận quá dài (tối đa 10000 ký tự)');
             }
             
             // Nếu là reply, kiểm tra parent comment tồn tại

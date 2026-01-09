@@ -19,16 +19,41 @@ View::section('content');
                 <button @click="open = !open" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors">
                     <i data-lucide="download" class="h-5 w-5"></i>
                     Export
+                    <i data-lucide="chevron-down" class="h-4 w-4"></i>
                 </button>
                 <div x-show="open" @click.away="open = false" x-cloak
-                     class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
-                    <a href="/php/api/admin-export.php?type=tasks&format=csv" 
-                       class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        <i data-lucide="file-text" class="h-4 w-4"></i>Export CSV
+                     class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
+                    <div class="px-3 py-2 border-b border-gray-100">
+                        <p class="text-xs font-semibold text-gray-400 uppercase">Danh sách công việc</p>
+                    </div>
+                    <a href="/php/api/admin-export.php?type=tasks&format=excel" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="file-spreadsheet" class="h-4 w-4 text-green-600"></i>
+                        Excel (.xlsx)
                     </a>
-                    <a href="/php/api/admin-export.php?type=tasks&format=json" 
-                       class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        <i data-lucide="file-json" class="h-4 w-4"></i>Export JSON
+                    <a href="/php/api/admin-export.php?type=tasks&format=pdf" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="file-text" class="h-4 w-4 text-red-600"></i>
+                        PDF
+                    </a>
+                    <a href="/php/api/admin-export.php?type=tasks&format=csv" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="file" class="h-4 w-4 text-blue-600"></i>
+                        CSV
+                    </a>
+                    
+                    <div class="px-3 py-2 border-t border-b border-gray-100 mt-1">
+                        <p class="text-xs font-semibold text-gray-400 uppercase">Báo cáo tổng hợp</p>
+                    </div>
+                    <a href="/php/api/admin-export.php?type=tasks_summary&format=excel" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="bar-chart-3" class="h-4 w-4 text-purple-600"></i>
+                        Tổng hợp theo dự án
+                    </a>
+                    <a href="/php/api/admin-export.php?type=team_performance&format=excel" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="users" class="h-4 w-4 text-indigo-600"></i>
+                        Hiệu suất nhân viên
                     </a>
                 </div>
             </div>
@@ -167,12 +192,66 @@ View::section('content');
         <?php endif; ?>
     </div>
 
+    <!-- Bulk Actions Toolbar -->
+    <div id="bulk-toolbar" class="hidden items-center gap-4 bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4">
+        <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-blue-700">
+                Đã chọn: <span id="selected-count" class="font-bold">0</span> mục
+            </span>
+        </div>
+        <div class="flex items-center gap-2 ml-auto">
+            <!-- Status Update -->
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open" class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm hover:bg-gray-50">
+                    <i data-lucide="circle" class="h-4 w-4"></i>
+                    Trạng thái
+                    <i data-lucide="chevron-down" class="h-3 w-3"></i>
+                </button>
+                <div x-show="open" @click.away="open = false" x-cloak class="absolute left-0 mt-1 w-40 bg-white rounded-lg shadow-lg border z-50">
+                    <button onclick="bulkOps.updateStatus('todo')" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Chờ xử lý</button>
+                    <button onclick="bulkOps.updateStatus('in_progress')" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Đang làm</button>
+                    <button onclick="bulkOps.updateStatus('in_review')" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Review</button>
+                    <button onclick="bulkOps.updateStatus('done')" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Hoàn thành</button>
+                </div>
+            </div>
+            
+            <!-- Priority Update -->
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open" class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm hover:bg-gray-50">
+                    <i data-lucide="flag" class="h-4 w-4"></i>
+                    Ưu tiên
+                    <i data-lucide="chevron-down" class="h-3 w-3"></i>
+                </button>
+                <div x-show="open" @click.away="open = false" x-cloak class="absolute left-0 mt-1 w-36 bg-white rounded-lg shadow-lg border z-50">
+                    <button onclick="bulkOps.updatePriority('urgent')" class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-50">Khẩn cấp</button>
+                    <button onclick="bulkOps.updatePriority('high')" class="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-gray-50">Cao</button>
+                    <button onclick="bulkOps.updatePriority('medium')" class="w-full text-left px-3 py-2 text-sm text-yellow-600 hover:bg-gray-50">Trung bình</button>
+                    <button onclick="bulkOps.updatePriority('low')" class="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50">Thấp</button>
+                </div>
+            </div>
+            
+            <!-- Delete -->
+            <button onclick="bulkOps.delete()" class="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm hover:bg-red-100">
+                <i data-lucide="trash-2" class="h-4 w-4"></i>
+                Xóa
+            </button>
+            
+            <!-- Clear Selection -->
+            <button onclick="bulkOps.clearSelection()" class="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg">
+                <i data-lucide="x" class="h-4 w-4"></i>
+            </button>
+        </div>
+    </div>
+
     <!-- Tasks Table -->
     <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-50 border-b border-gray-100">
                     <tr>
+                        <th class="px-4 py-4 text-left">
+                            <input type="checkbox" id="select-all" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        </th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Công việc</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Dự án</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Trạng thái</th>
@@ -209,6 +288,9 @@ View::section('content');
                         $isOverdue = !empty($task['due_date']) && $task['due_date'] < date('Y-m-d') && $task['status'] !== 'done';
                         ?>
                         <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-4">
+                                <input type="checkbox" class="bulk-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500" data-id="<?= $task['id'] ?>">
+                            </td>
                             <td class="px-6 py-4">
                                 <a href="/php/task-detail.php?id=<?= $task['id'] ?>" class="font-medium text-gray-900 hover:text-blue-600">
                                     <?= View::e($task['title']) ?>
@@ -260,7 +342,7 @@ View::section('content');
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="8" class="px-6 py-12 text-center text-gray-500">
                                 <i data-lucide="check-square" class="h-12 w-12 mx-auto mb-3 text-gray-300"></i>
                                 <p>Chưa có công việc nào</p>
                             </td>
@@ -278,3 +360,9 @@ View::section('content');
 </div>
 
 <?php View::endSection(); ?>
+
+<!-- Bulk Operations Script -->
+<script src="/php/public/js/bulk-operations.js"></script>
+<script>
+    const bulkOps = new BulkOperations({ entity: 'tasks' });
+</script>

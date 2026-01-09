@@ -1,0 +1,65 @@
+[2026-01-09 00:01:26] [INFO] User logged out {"user_id":"usr-004"}
+[2026-01-09 00:03:39] [INFO] User data from DB {"user_id":"USR-001-ADMIN-CEO","email":"ceo@saigontech.vn","role":"admin","role_type":"string"}
+[2026-01-09 00:03:39] [INFO] User logged in {"user_id":"USR-001-ADMIN-CEO","email":"ceo@saigontech.vn"}
+[2026-01-09 00:04:05] [INFO] User logged out {"user_id":"USR-001-ADMIN-CEO"}
+[2026-01-09 00:04:18] [INFO] User data from DB {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn","role":"admin","role_type":"string"}
+[2026-01-09 00:04:18] [INFO] User logged in {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn"}
+[2026-01-09 00:04:36] [INFO] User logged out {"user_id":"USR-002-ADMIN-CTO"}
+[2026-01-09 00:04:40] [INFO] User data from DB {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn","role":"manager","role_type":"string"}
+[2026-01-09 00:04:40] [INFO] User logged in {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn"}
+[2026-01-09 00:06:03] [INFO] User logged out {"user_id":"USR-003-MGR-PM01"}
+[2026-01-09 00:06:08] [INFO] User data from DB {"user_id":"USR-008-DEV-BE01","email":"backend.tuan@saigontech.vn","role":"member","role_type":"string"}
+[2026-01-09 00:06:08] [INFO] User logged in {"user_id":"USR-008-DEV-BE01","email":"backend.tuan@saigontech.vn"}
+[2026-01-09 00:10:23] [INFO] User logged out {"user_id":"USR-008-DEV-BE01"}
+[2026-01-09 00:10:26] [INFO] User data from DB {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn","role":"manager","role_type":"string"}
+[2026-01-09 00:10:26] [INFO] User logged in {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn"}
+[2026-01-09 00:51:52] [INFO] User logged out {"user_id":"USR-003-MGR-PM01"}
+[2026-01-09 00:51:58] [WARNING] Failed login attempt {"email":"backend.tuan@saigontech.vn","ip":"::1"}
+[2026-01-09 00:52:02] [WARNING] Failed login attempt {"email":"backend.tuan@saigontech.vn","ip":"::1"}
+[2026-01-09 00:52:10] [WARNING] Failed login attempt {"email":"backend.tuan@saigontech.vn","ip":"::1"}
+[2026-01-09 00:52:51] [INFO] User data from DB {"user_id":"USR-008-DEV-BE01","email":"backend.tuan@saigontech.vn","role":"member","role_type":"string"}
+[2026-01-09 00:52:51] [INFO] User logged in {"user_id":"USR-008-DEV-BE01","email":"backend.tuan@saigontech.vn"}
+[2026-01-09 00:53:53] [INFO] User logged out {"user_id":"USR-008-DEV-BE01"}
+[2026-01-09 00:53:58] [INFO] User data from DB {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn","role":"manager","role_type":"string"}
+[2026-01-09 00:53:58] [INFO] User logged in {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn"}
+[2026-01-09 01:23:31] [INFO] User logged out {"user_id":"USR-003-MGR-PM01"}
+[2026-01-09 01:23:38] [WARNING] Failed login attempt {"email":"cto@saigontech.vn","ip":"::1"}
+[2026-01-09 01:23:59] [INFO] User data from DB {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn","role":"admin","role_type":"string"}
+[2026-01-09 01:23:59] [INFO] User logged in {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn"}
+[2026-01-09 01:33:28] [INFO] User logged out {"user_id":"USR-002-ADMIN-CTO"}
+[2026-01-09 01:33:31] [INFO] User data from DB {"user_id":"USR-008-DEV-BE01","email":"backend.tuan@saigontech.vn","role":"member","role_type":"string"}
+[2026-01-09 01:33:31] [INFO] User logged in {"user_id":"USR-008-DEV-BE01","email":"backend.tuan@saigontech.vn"}
+[2026-01-09 01:33:49] [INFO] User logged out {"user_id":"USR-008-DEV-BE01"}
+[2026-01-09 01:33:54] [INFO] User data from DB {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn","role":"manager","role_type":"string"}
+[2026-01-09 01:33:54] [INFO] User logged in {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn"}
+[2026-01-09 01:35:36] [INFO] User logged out {"user_id":"USR-003-MGR-PM01"}
+[2026-01-09 01:35:39] [INFO] User data from DB {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn","role":"admin","role_type":"string"}
+[2026-01-09 01:35:39] [INFO] User logged in {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn"}
+[2026-01-09 13:43:25] [INFO] User data from DB {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn","role":"admin","role_type":"string"}
+[2026-01-09 13:43:25] [INFO] User logged in {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn"}
+[2026-01-09 13:49:05] [INFO] User logged out {"user_id":"USR-002-ADMIN-CTO"}
+[2026-01-09 13:49:11] [INFO] User data from DB {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn","role":"manager","role_type":"string"}
+[2026-01-09 13:49:12] [INFO] User logged in {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn"}
+[2026-01-09 14:13:19] [INFO] User logged out {"user_id":"USR-003-MGR-PM01"}
+[2026-01-09 14:13:24] [INFO] User data from DB {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn","role":"admin","role_type":"string"}
+[2026-01-09 14:13:24] [INFO] User logged in {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn"}
+[2026-01-09 14:21:57] [INFO] User logged out {"user_id":"USR-002-ADMIN-CTO"}
+[2026-01-09 14:22:00] [INFO] User data from DB {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn","role":"admin","role_type":"string"}
+[2026-01-09 14:22:00] [INFO] User logged in {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn"}
+[2026-01-09 14:22:56] [INFO] User logged out {"user_id":"USR-002-ADMIN-CTO"}
+[2026-01-09 14:22:59] [INFO] User data from DB {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn","role":"manager","role_type":"string"}
+[2026-01-09 14:22:59] [INFO] User logged in {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn"}
+[2026-01-09 14:23:06] [INFO] User logged out {"user_id":"USR-003-MGR-PM01"}
+[2026-01-09 14:23:09] [INFO] User data from DB {"user_id":"USR-008-DEV-BE01","email":"backend.tuan@saigontech.vn","role":"member","role_type":"string"}
+[2026-01-09 14:23:09] [INFO] User logged in {"user_id":"USR-008-DEV-BE01","email":"backend.tuan@saigontech.vn"}
+[2026-01-09 14:23:21] [INFO] User logged out {"user_id":"USR-008-DEV-BE01"}
+[2026-01-09 14:23:24] [INFO] User data from DB {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn","role":"admin","role_type":"string"}
+[2026-01-09 14:23:24] [INFO] User logged in {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn"}
+[2026-01-09 14:24:58] [INFO] User logged out {"user_id":"USR-002-ADMIN-CTO"}
+[2026-01-09 14:25:27] [WARNING] Failed login attempt {"email":"pm.duc@techviet.vn","ip":"::1"}
+[2026-01-09 14:26:06] [INFO] User data from DB {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn","role":"manager","role_type":"string"}
+[2026-01-09 14:26:06] [INFO] User logged in {"user_id":"USR-003-MGR-PM01","email":"pm.hung@saigontech.vn"}
+[2026-01-09 14:26:46] [INFO] User data from DB {"user_id":"USR-008-DEV-BE01","email":"backend.tuan@saigontech.vn","role":"member","role_type":"string"}
+[2026-01-09 14:26:46] [INFO] User logged in {"user_id":"USR-008-DEV-BE01","email":"backend.tuan@saigontech.vn"}
+[2026-01-09 14:26:53] [INFO] User data from DB {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn","role":"admin","role_type":"string"}
+[2026-01-09 14:26:53] [INFO] User logged in {"user_id":"USR-002-ADMIN-CTO","email":"cto@saigontech.vn"}

@@ -25,6 +25,8 @@ CREATE TABLE `users` (
     `email_verified_at` DATETIME NULL,
     `remember_token` VARCHAR(64) NULL,
     `remember_token_expiry` DATETIME NULL,
+    `reset_token` VARCHAR(64) NULL,
+    `reset_token_expiry` DATETIME NULL,
     `last_login_at` DATETIME NULL,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -116,6 +118,7 @@ CREATE TABLE `tasks` (
     `completed_at` DATETIME NULL,
     `estimated_hours` DECIMAL(6, 2) NULL,
     `actual_hours` DECIMAL(6, 2) NULL,
+    `version` INT UNSIGNED NOT NULL DEFAULT 1,
     `created_by` VARCHAR(36) NULL,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -286,18 +289,23 @@ DROP TABLE IF EXISTS `notifications`;
 CREATE TABLE `notifications` (
     `id` VARCHAR(36) PRIMARY KEY DEFAULT (UUID()),
     `user_id` VARCHAR(36) NOT NULL,
+    `actor_id` VARCHAR(36) NULL,
     `type` VARCHAR(50) NOT NULL,
     `title` VARCHAR(255) NOT NULL,
     `message` TEXT NULL,
     `data` JSON NULL,
+    `link` VARCHAR(500) NULL,
     `is_read` TINYINT(1) NOT NULL DEFAULT 0,
     `read_at` DATETIME NULL,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     
     CONSTRAINT `fk_notif_user` FOREIGN KEY (`user_id`) 
         REFERENCES `users`(`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_notif_actor` FOREIGN KEY (`actor_id`) 
+        REFERENCES `users`(`id`) ON DELETE SET NULL,
     
     INDEX `idx_notif_user` (`user_id`),
+    INDEX `idx_notif_actor` (`actor_id`),
     INDEX `idx_notif_is_read` (`is_read`),
     INDEX `idx_notif_type` (`type`),
     INDEX `idx_notif_created_at` (`created_at`)
@@ -404,3 +412,75 @@ CREATE TABLE `user_settings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- =============================================
+-- 17. SYSTEM_SETTINGS - Cài đặt hệ thống
+-- =============================================
+DROP TABLE IF EXISTS `system_settings`;
+CREATE TABLE `system_settings` (
+    `setting_key` VARCHAR(100) PRIMARY KEY,
+    `setting_value` TEXT NULL,
+    `setting_type` ENUM('string', 'number', 'boolean', 'json') DEFAULT 'string',
+    `description` VARCHAR(255) NULL,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Insert default settings
+INSERT INTO `system_settings` (`setting_key`, `setting_value`, `setting_type`, `description`) VALUES
+('site_name', 'TaskFlow', 'string', 'Tên hệ thống'),
+('site_description', 'Hệ thống quản lý công việc và dự án', 'string', 'Mô tả hệ thống'),
+('allow_registration', '1', 'boolean', 'Cho phép đăng ký tài khoản mới'),
+('max_upload_size', '52428800', 'number', 'Kích thước file upload tối đa (bytes)'),
+('maintenance_mode', '0', 'boolean', 'Chế độ bảo trì'),
+('default_language', 'vi', 'string', 'Ngôn ngữ mặc định'),
+('default_timezone', 'Asia/Ho_Chi_Minh', 'string', 'Múi giờ mặc định');
+
+-- =============================================
+-- FULLTEXT INDEXES FOR SEARCH
+-- =============================================
+
+-- Fulltext index cho tasks
+ALTER TABLE `tasks` ADD FULLTEXT INDEX `ft_tasks_search` (`title`, `description`);
+
+-- Fulltext index cho projects
+ALTER TABLE `projects` ADD FULLTEXT INDEX `ft_projects_search` (`name`, `description`);
+
+-- Fulltext index cho documents
+ALTER TABLE `documents` ADD FULLTEXT INDEX `ft_documents_search` (`name`, `description`);
+
+-- Fulltext index cho comments
+ALTER TABLE `comments` ADD FULLTEXT INDEX `ft_comments_search` (`content`);
+
+-- Fulltext index cho users
+ALTER TABLE `users` ADD FULLTEXT INDEX `ft_users_search` (`full_name`, `email`, `department`, `position`);
+
+-- =============================================
+-- COMPOSITE INDEXES FOR PERFORMANCE
+-- =============================================
+
+-- Tasks indexes
+CREATE INDEX `idx_tasks_project_status` ON `tasks` (`project_id`, `status`, `position`);
+CREATE INDEX `idx_tasks_due_date_status` ON `tasks` (`due_date`, `status`);
+CREATE INDEX `idx_tasks_overdue` ON `tasks` (`status`, `due_date`, `priority`);
+
+-- Project members indexes
+CREATE INDEX `idx_pm_user_role` ON `project_members` (`user_id`, `role`);
+
+-- Task assignees indexes
+CREATE INDEX `idx_ta_user_task` ON `task_assignees` (`user_id`, `task_id`);
+
+-- Comments indexes
+CREATE INDEX `idx_comments_entity_created` ON `comments` (`entity_type`, `entity_id`, `created_at` DESC);
+
+-- Notifications indexes
+CREATE INDEX `idx_notif_user_unread` ON `notifications` (`user_id`, `is_read`, `created_at` DESC);
+
+-- Documents indexes
+CREATE INDEX `idx_docs_project_type` ON `documents` (`project_id`, `type`, `name`);
+CREATE INDEX `idx_docs_starred_user` ON `documents` (`uploaded_by`, `is_starred`);
+
+-- Activity logs indexes
+CREATE INDEX `idx_activity_entity_time` ON `activity_logs` (`entity_type`, `entity_id`, `created_at` DESC);
+
+-- Calendar events indexes
+CREATE INDEX `idx_events_user_dates` ON `calendar_events` (`created_by`, `start_time`, `end_time`);

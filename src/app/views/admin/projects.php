@@ -205,10 +205,10 @@ View::section('content');
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-end gap-2">
-                                    <a href="/php/project-detail.php?id=<?= $project['id'] ?>" 
-                                       class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                                        <i data-lucide="eye" class="h-4 w-4"></i>
-                                    </a>
+                                    <button onclick="confirmDeleteProject('<?= $project['id'] ?>')" 
+                                            class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Xóa dự án">
+                                        <i data-lucide="trash-2" class="h-4 w-4"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -231,5 +231,32 @@ View::section('content');
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+function confirmDeleteProject(id) {
+    if (confirm('Bạn có chắc chắn muốn xóa dự án này? Hành động này không thể hoàn tác.')) {
+        fetch(`/php/api/update-project.php?project_id=${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Đã xóa dự án thành công', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast(data.error || 'Có lỗi xảy ra khi xóa dự án', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Lỗi kết nối đến server', 'error');
+        });
+    }
+}
+</script>
 
 <?php View::endSection(); ?>

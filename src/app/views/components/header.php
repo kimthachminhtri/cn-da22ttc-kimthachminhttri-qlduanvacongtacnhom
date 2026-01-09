@@ -9,6 +9,11 @@ $isManager = in_array($userRole, ['admin', 'manager']);
 <header class="bg-white border-b border-gray-200 px-6 py-4">
     <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
+            <!-- Mobile Menu Toggle -->
+            <button @click="sidebarOpen = !sidebarOpen" 
+                    class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg md:hidden">
+                <i data-lucide="menu" class="h-6 w-6"></i>
+            </button>
             <h1 class="text-xl font-semibold text-gray-900"><?= View::e($pageTitle ?? 'Tổng quan') ?></h1>
         </div>
         
@@ -59,7 +64,7 @@ $isManager = in_array($userRole, ['admin', 'manager']);
             <!-- Notifications -->
             <a href="/php/notifications.php" class="relative p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100" id="notification-bell">
                 <i data-lucide="bell" class="h-5 w-5"></i>
-                <span id="notification-badge" class="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 hidden"></span>
+                <span data-notification-count id="notification-badge" class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center hidden">0</span>
             </a>
             
             <?php if ($isManager): ?>
@@ -106,7 +111,10 @@ fetch('/php/api/notifications.php?action=count')
     .then(r => r.json())
     .then(data => {
         if (data.success && data.count > 0) {
-            document.getElementById('notification-badge').classList.remove('hidden');
+            const badge = document.getElementById('notification-badge');
+            badge.textContent = data.count > 99 ? '99+' : data.count;
+            badge.classList.remove('hidden');
+            badge.style.display = 'flex';
         }
     })
     .catch(() => {});

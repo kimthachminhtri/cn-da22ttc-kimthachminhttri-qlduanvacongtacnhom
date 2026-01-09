@@ -6,20 +6,17 @@ use Core\View;
 
 View::section('content');
 
-function formatFileSize($bytes) {
-    if ($bytes >= 1073741824) return number_format($bytes / 1073741824, 2) . ' GB';
-    if ($bytes >= 1048576) return number_format($bytes / 1048576, 2) . ' MB';
-    if ($bytes >= 1024) return number_format($bytes / 1024, 2) . ' KB';
-    return $bytes . ' B';
-}
+// formatFileSize() is already defined in includes/functions.php
 
-function getFileIcon($mimeType) {
-    if (strpos($mimeType, 'image') !== false) return 'image';
-    if (strpos($mimeType, 'pdf') !== false) return 'file-text';
-    if (strpos($mimeType, 'word') !== false || strpos($mimeType, 'document') !== false) return 'file-text';
-    if (strpos($mimeType, 'excel') !== false || strpos($mimeType, 'spreadsheet') !== false) return 'file-spreadsheet';
-    if (strpos($mimeType, 'zip') !== false || strpos($mimeType, 'archive') !== false) return 'file-archive';
-    return 'file';
+if (!function_exists('getFileIcon')) {
+    function getFileIcon($mimeType) {
+        if (strpos($mimeType, 'image') !== false) return 'image';
+        if (strpos($mimeType, 'pdf') !== false) return 'file-text';
+        if (strpos($mimeType, 'word') !== false || strpos($mimeType, 'document') !== false) return 'file-text';
+        if (strpos($mimeType, 'excel') !== false || strpos($mimeType, 'spreadsheet') !== false) return 'file-spreadsheet';
+        if (strpos($mimeType, 'zip') !== false || strpos($mimeType, 'archive') !== false) return 'file-archive';
+        return 'file';
+    }
 }
 ?>
 

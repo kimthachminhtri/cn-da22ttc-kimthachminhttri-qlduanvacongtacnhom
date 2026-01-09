@@ -4,6 +4,10 @@
  */
 
 require_once __DIR__ . '/../includes/config.php';
+require_once BASE_PATH . '/includes/csrf.php';
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    csrf_require();
+}
 
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);

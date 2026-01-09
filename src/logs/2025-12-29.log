@@ -4,3 +4,65 @@
 [2025-12-29 00:30:51] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
 [2025-12-29 11:36:12] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
 [2025-12-29 11:36:12] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-29 15:06:55] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-29 15:06:55] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-29 15:07:11] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-29 15:07:15] [INFO] User data from DB {"user_id":"usr-007","email":"dev.khanh@techviet.vn","role":"member","role_type":"string"}
+[2025-12-29 15:07:15] [INFO] User logged in {"user_id":"usr-007","email":"dev.khanh@techviet.vn"}
+[2025-12-29 15:07:21] [INFO] User logged out {"user_id":"usr-007"}
+[2025-12-29 15:07:24] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-29 15:07:24] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-29 15:07:27] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-29 15:07:31] [INFO] User data from DB {"user_id":"usr-001","email":"ceo@techviet.vn","role":"admin","role_type":"string"}
+[2025-12-29 15:07:31] [INFO] User logged in {"user_id":"usr-001","email":"ceo@techviet.vn"}
+[2025-12-29 15:07:45] [INFO] User logged out {"user_id":"usr-001"}
+[2025-12-29 15:13:41] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-29 15:13:41] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-29 15:16:57] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-29 15:16:57] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-29 17:03:12] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-29 17:03:17] [INFO] User data from DB {"user_id":"usr-001","email":"ceo@techviet.vn","role":"admin","role_type":"string"}
+[2025-12-29 17:03:17] [INFO] User logged in {"user_id":"usr-001","email":"ceo@techviet.vn"}
+[2025-12-29 17:03:23] [INFO] User logged out {"user_id":"usr-001"}
+[2025-12-29 17:04:09] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-29 17:04:09] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-29 17:04:14] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-29 17:04:44] [INFO] User data from DB {"user_id":"usr-007","email":"dev.khanh@techviet.vn","role":"member","role_type":"string"}
+[2025-12-29 17:04:44] [INFO] User logged in {"user_id":"usr-007","email":"dev.khanh@techviet.vn"}
+[2025-12-29 17:04:48] [INFO] User logged out {"user_id":"usr-007"}
+[2025-12-29 17:08:00] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-29 17:08:42] [INFO] User data from DB {"user_id":"usr-001","email":"ceo@techviet.vn","role":"admin","role_type":"string"}
+[2025-12-29 17:08:42] [INFO] User logged in {"user_id":"usr-001","email":"ceo@techviet.vn"}
+[2025-12-29 17:35:26] [INFO] User logged out {"user_id":"usr-001"}
+[2025-12-29 17:39:04] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-29 17:39:04] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-29 18:14:47] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-29 18:21:54] [INFO] User data from DB {"user_id":"usr-007","email":"dev.khanh@techviet.vn","role":"member","role_type":"string"}
+[2025-12-29 18:21:54] [INFO] User logged in {"user_id":"usr-007","email":"dev.khanh@techviet.vn"}
+[2025-12-29 18:23:03] [INFO] User logged out {"user_id":"usr-007"}
+[2025-12-29 18:23:06] [INFO] User data from DB {"user_id":"usr-007","email":"dev.khanh@techviet.vn","role":"member","role_type":"string"}
+[2025-12-29 18:23:06] [INFO] User logged in {"user_id":"usr-007","email":"dev.khanh@techviet.vn"}
+[2025-12-29 18:23:21] [INFO] User logged out {"user_id":"usr-007"}
+[2025-12-29 18:23:25] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-29 18:23:25] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-29 18:24:38] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-29 18:24:47] [INFO] User data from DB {"user_id":"usr-001","email":"ceo@techviet.vn","role":"admin","role_type":"string"}
+[2025-12-29 18:24:48] [INFO] User logged in {"user_id":"usr-001","email":"ceo@techviet.vn"}
+[2025-12-29 18:26:24] [INFO] User logged out {"user_id":"usr-001"}
+[2025-12-29 18:30:46] [INFO] User data from DB {"user_id":"usr-007","email":"dev.khanh@techviet.vn","role":"member","role_type":"string"}
+[2025-12-29 18:30:46] [INFO] User logged in {"user_id":"usr-007","email":"dev.khanh@techviet.vn"}
+[2025-12-29 18:31:09] [INFO] User logged out {"user_id":"usr-007"}
+[2025-12-29 18:31:14] [INFO] User data from DB {"user_id":"usr-007","email":"dev.khanh@techviet.vn","role":"member","role_type":"string"}
+[2025-12-29 18:31:14] [INFO] User logged in {"user_id":"usr-007","email":"dev.khanh@techviet.vn"}
+[2025-12-29 19:46:14] [INFO] User logged out {"user_id":"usr-007"}
+[2025-12-29 19:46:17] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-29 19:46:17] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}
+[2025-12-29 19:46:49] [INFO] User logged out {"user_id":"usr-004"}
+[2025-12-29 19:46:53] [INFO] User data from DB {"user_id":"usr-001","email":"ceo@techviet.vn","role":"admin","role_type":"string"}
+[2025-12-29 19:46:53] [INFO] User logged in {"user_id":"usr-001","email":"ceo@techviet.vn"}
+[2025-12-29 19:47:10] [INFO] User logged out {"user_id":"usr-001"}
+[2025-12-29 19:47:13] [INFO] User data from DB {"user_id":"usr-007","email":"dev.khanh@techviet.vn","role":"member","role_type":"string"}
+[2025-12-29 19:47:13] [INFO] User logged in {"user_id":"usr-007","email":"dev.khanh@techviet.vn"}
+[2025-12-29 20:37:12] [INFO] User logged out {"user_id":"usr-007"}
+[2025-12-29 20:37:15] [INFO] User data from DB {"user_id":"usr-004","email":"pm.duc@techviet.vn","role":"manager","role_type":"string"}
+[2025-12-29 20:37:15] [INFO] User logged in {"user_id":"usr-004","email":"pm.duc@techviet.vn"}

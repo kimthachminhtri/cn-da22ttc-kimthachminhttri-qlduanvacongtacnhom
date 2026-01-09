@@ -5,6 +5,12 @@
  */
 
 require_once __DIR__ . '/../includes/config.php';
+require_once BASE_PATH . '/includes/csrf.php';
+
+// CSRF check for non-GET requests
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    csrf_require();
+}
 
 header('Content-Type: application/json');
 
@@ -123,14 +129,14 @@ try {
             // Tạo sự kiện mới
             $input = json_decode(file_get_contents('php://input'), true);
             
-            $title = trim($input['title'] ?? '');
-            $description = trim($input['description'] ?? '');
+            $title = htmlspecialchars(trim($input['title'] ?? ''), ENT_QUOTES, 'UTF-8');
+            $description = htmlspecialchars(trim($input['description'] ?? ''), ENT_QUOTES, 'UTF-8');
             // Hỗ trợ cả start_date và start_time
             $startTime = $input['start_time'] ?? $input['start_date'] ?? null;
             $endTime = $input['end_time'] ?? $input['end_date'] ?? $startTime;
             $isAllDay = $input['is_all_day'] ?? true;
             $color = $input['color'] ?? '#6366f1';
-            $location = trim($input['location'] ?? '');
+            $location = htmlspecialchars(trim($input['location'] ?? ''), ENT_QUOTES, 'UTF-8');
             $type = $input['type'] ?? 'event';
             $projectId = $input['project_id'] ?? null;
             
@@ -139,6 +145,28 @@ try {
             }
             if (empty($startTime)) {
                 throw new Exception('start_time is required');
+            }
+            
+            // Validate project membership nếu có project_id
+            if (!empty($projectId)) {
+                $isMember = $db->fetchOne(
+                    "SELECT 1 FROM project_members WHERE project_id = ? AND user_id = ?",
+                    [$projectId, $currentUserId]
+                );
+                if (!$isMember) {
+                    throw new Exception('Bạn không phải là thành viên của dự án này');
+                }
+            }
+            
+            // Validate type
+            $validTypes = ['meeting', 'deadline', 'reminder', 'event'];
+            if (!in_array($type, $validTypes)) {
+                $type = 'event';
+            }
+            
+            // Validate color format
+            if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $color)) {
+                $color = '#6366f1';
             }
             
             // Generate UUID

@@ -1,6 +1,13 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Task Model
+ * 
+ * Model quản lý tasks trong hệ thống.
+ * 
+ * @package App\Models
  */
 
 namespace App\Models;
@@ -9,25 +16,57 @@ class Task extends BaseModel
 {
     protected string $table = 'tasks';
 
+    /**
+     * Lấy tasks theo project với assignees (optimized - tránh N+1)
+     * 
+     * @param string $projectId
+     * @return array<int, array<string, mixed>>
+     */
     public function getByProject(string $projectId): array
     {
+        // Optimized query to avoid N+1 problem
+        // Get tasks with assignees in a single query using GROUP_CONCAT
         $sql = "SELECT t.*, 
-                GROUP_CONCAT(DISTINCT ta.user_id) as assignee_ids
+                GROUP_CONCAT(DISTINCT ta.user_id) as assignee_ids,
+                GROUP_CONCAT(DISTINCT u.full_name SEPARATOR ', ') as assignee_names,
+                GROUP_CONCAT(DISTINCT CONCAT(u.id, ':', u.full_name, ':', COALESCE(u.avatar_url, '')) SEPARATOR '|') as assignee_data
                 FROM {$this->table} t
                 LEFT JOIN task_assignees ta ON t.id = ta.task_id
+                LEFT JOIN users u ON ta.user_id = u.id
                 WHERE t.project_id = ?
                 GROUP BY t.id
                 ORDER BY t.position ASC, t.created_at DESC";
         
         $tasks = $this->db->fetchAll($sql, [$projectId]);
         
+        // Parse assignee_data into structured array
         foreach ($tasks as &$task) {
-            $task['assignees'] = $this->getAssignees($task['id']);
+            $task['assignees'] = [];
+            if (!empty($task['assignee_data'])) {
+                $assigneeStrings = explode('|', $task['assignee_data']);
+                foreach ($assigneeStrings as $str) {
+                    $parts = explode(':', $str, 3);
+                    if (count($parts) >= 2) {
+                        $task['assignees'][] = [
+                            'id' => $parts[0],
+                            'full_name' => $parts[1],
+                            'avatar_url' => $parts[2] ?? ''
+                        ];
+                    }
+                }
+            }
+            unset($task['assignee_data']);
         }
         
         return $tasks;
     }
 
+    /**
+     * Lấy task với đầy đủ chi tiết (assignees, checklist, comments)
+     * 
+     * @param string $taskId
+     * @return array<string, mixed>|null
+     */
     public function getWithDetails(string $taskId): ?array
     {
         $task = $this->find($taskId);
@@ -40,6 +79,12 @@ class Task extends BaseModel
         return $task;
     }
 
+    /**
+     * Lấy danh sách assignees của task
+     * 
+     * @param string $taskId
+     * @return array<int, array<string, mixed>>
+     */
     public function getAssignees(string $taskId): array
     {
         $sql = "SELECT u.id, u.full_name, u.email, u.avatar_url
@@ -49,6 +94,14 @@ class Task extends BaseModel
         return $this->db->fetchAll($sql, [$taskId]);
     }
 
+    /**
+     * Gán user vào task
+     * 
+     * @param string $taskId
+     * @param string $userId
+     * @param string $assignedBy
+     * @return bool
+     */
     public function assignUser(string $taskId, string $userId, string $assignedBy): bool
     {
         $sql = "INSERT INTO task_assignees (task_id, user_id, assigned_by, assigned_at) 
@@ -58,17 +111,36 @@ class Task extends BaseModel
         return true;
     }
 
+    /**
+     * Bỏ gán user khỏi task
+     * 
+     * @param string $taskId
+     * @param string $userId
+     * @return int Số rows bị xóa
+     */
     public function unassignUser(string $taskId, string $userId): int
     {
         return $this->db->delete('task_assignees', 'task_id = ? AND user_id = ?', [$taskId, $userId]);
     }
 
+    /**
+     * Lấy checklist của task
+     * 
+     * @param string $taskId
+     * @return array<int, array<string, mixed>>
+     */
     public function getChecklist(string $taskId): array
     {
         $sql = "SELECT * FROM task_checklists WHERE task_id = ? ORDER BY position ASC";
         return $this->db->fetchAll($sql, [$taskId]);
     }
 
+    /**
+     * Lấy comments của task
+     * 
+     * @param string $taskId
+     * @return array<int, array<string, mixed>>
+     */
     public function getComments(string $taskId): array
     {
         // Lấy comments mới nhất trước (DESC)
@@ -81,22 +153,59 @@ class Task extends BaseModel
         return $this->db->fetchAll($sql, [$taskId]);
     }
 
-    public function getUserTasks(string $userId): array
+    /**
+     * Lấy tasks được gán cho user hoặc do user tạo
+     * Nếu là Manager/Admin: lấy thêm tasks trong các dự án họ quản lý
+     * 
+     * @param string $userId
+     * @param string $userRole
+     * @return array<int, array<string, mixed>>
+     */
+    public function getUserTasks(string $userId, string $userRole = 'member'): array
     {
-        $sql = "SELECT t.*, p.name as project_name, p.color as project_color
+        // Manager/Admin: lấy tất cả tasks trong dự án họ quản lý
+        if (in_array($userRole, ['admin', 'manager'])) {
+            $sql = "SELECT DISTINCT t.*, p.name as project_name, p.color as project_color
+                    FROM {$this->table} t
+                    LEFT JOIN projects p ON t.project_id = p.id
+                    LEFT JOIN project_members pm ON p.id = pm.project_id
+                    LEFT JOIN task_assignees ta ON t.id = ta.task_id
+                    WHERE ta.user_id = ? 
+                       OR t.created_by = ?
+                       OR (pm.user_id = ? AND pm.role IN ('owner', 'manager'))
+                    ORDER BY t.due_date ASC, t.priority DESC";
+            return $this->db->fetchAll($sql, [$userId, $userId, $userId]);
+        }
+        
+        // Member: chỉ lấy tasks được gán hoặc tự tạo
+        $sql = "SELECT DISTINCT t.*, p.name as project_name, p.color as project_color
                 FROM {$this->table} t
-                JOIN task_assignees ta ON t.id = ta.task_id
+                LEFT JOIN task_assignees ta ON t.id = ta.task_id
                 LEFT JOIN projects p ON t.project_id = p.id
-                WHERE ta.user_id = ?
+                WHERE ta.user_id = ? OR t.created_by = ?
                 ORDER BY t.due_date ASC, t.priority DESC";
-        return $this->db->fetchAll($sql, [$userId]);
+        return $this->db->fetchAll($sql, [$userId, $userId]);
     }
 
+    /**
+     * Lấy tasks theo status
+     * 
+     * @param string $status
+     * @return array<int, array<string, mixed>>
+     */
     public function getByStatus(string $status): array
     {
         return $this->findAllBy('status', $status, 'position ASC');
     }
 
+    /**
+     * Lấy tasks trong khoảng thời gian (cho Calendar/Gantt)
+     * 
+     * @param string $userId
+     * @param string $startDate Format: Y-m-d
+     * @param string $endDate Format: Y-m-d
+     * @return array<int, array<string, mixed>>
+     */
     public function getByDateRange(string $userId, string $startDate, string $endDate): array
     {
         // Get tasks that have due_date in range OR created_at in range (for Gantt)

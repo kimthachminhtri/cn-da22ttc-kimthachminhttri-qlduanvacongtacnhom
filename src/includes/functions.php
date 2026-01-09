@@ -140,3 +140,86 @@ function countTasksByStatus($tasks, $status) {
 function getTasksByProject($tasks, $projectId) {
     return array_filter($tasks, fn($t) => $t['projectId'] === $projectId);
 }
+
+
+/**
+ * Generate UUID v4
+ * Sử dụng thay vì copy-paste code trong các API
+ * 
+ * @return string UUID string (36 characters)
+ */
+function generateUUID(): string {
+    return sprintf(
+        '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+        mt_rand(0, 0xffff),
+        mt_rand(0, 0x0fff) | 0x4000,
+        mt_rand(0, 0x3fff) | 0x8000,
+        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+    );
+}
+
+/**
+ * Sanitize string input
+ * Loại bỏ HTML tags và escape special characters
+ * 
+ * @param string $input
+ * @return string
+ */
+function sanitizeInput(string $input): string {
+    return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
+}
+
+/**
+ * Validate date format (YYYY-MM-DD)
+ * 
+ * @param string $date
+ * @return bool
+ */
+function isValidDate(string $date): bool {
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+        return false;
+    }
+    $dateTime = \DateTime::createFromFormat('Y-m-d', $date);
+    return $dateTime && $dateTime->format('Y-m-d') === $date;
+}
+
+/**
+ * Validate datetime format (YYYY-MM-DD HH:MM:SS)
+ * 
+ * @param string $datetime
+ * @return bool
+ */
+function isValidDateTime(string $datetime): bool {
+    $dateTime = \DateTime::createFromFormat('Y-m-d H:i:s', $datetime);
+    return $dateTime && $dateTime->format('Y-m-d H:i:s') === $datetime;
+}
+
+/**
+ * Format file size to human readable
+ * 
+ * @param int $bytes
+ * @return string
+ */
+function formatFileSize(int $bytes): string {
+    $units = ['B', 'KB', 'MB', 'GB'];
+    $i = 0;
+    while ($bytes >= 1024 && $i < count($units) - 1) {
+        $bytes /= 1024;
+        $i++;
+    }
+    return round($bytes, 2) . ' ' . $units[$i];
+}
+
+/**
+ * Get color class based on percentage
+ * 
+ * @param int $percentage
+ * @return string
+ */
+function getProgressColor(int $percentage): string {
+    if ($percentage >= 80) return 'bg-green-500';
+    if ($percentage >= 50) return 'bg-blue-500';
+    if ($percentage >= 25) return 'bg-yellow-500';
+    return 'bg-red-500';
+}

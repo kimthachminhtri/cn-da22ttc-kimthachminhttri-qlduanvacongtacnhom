@@ -14,7 +14,11 @@ AuthMiddleware::handle();
 $taskId = $_GET['id'] ?? '';
 
 if (!$taskId) {
-    header('Location: /php/tasks.php');
+    http_response_code(404);
+    View::render('errors/404', [
+        'message' => 'ID công việc không hợp lệ.',
+        'pageTitle' => 'Không tìm thấy'
+    ]);
     exit;
 }
 
@@ -24,7 +28,11 @@ $projectModel = new Project();
 $task = $taskModel->getWithDetails($taskId);
 
 if (!$task) {
-    header('Location: /php/tasks.php');
+    http_response_code(404);
+    View::render('errors/404', [
+        'message' => 'Công việc không tồn tại hoặc đã bị xóa.',
+        'pageTitle' => 'Không tìm thấy'
+    ]);
     exit;
 }
 

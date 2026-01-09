@@ -35,6 +35,9 @@ $userName = Session::get('user_name', 'Admin');
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- Real-time Notifications -->
+    <script src="/php/public/js/realtime-notifications.js" defer></script>
     <style>
         [x-cloak] { display: none !important; }
         .sidebar-link.active { background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%); }

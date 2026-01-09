@@ -5,6 +5,10 @@
  */
 
 require_once __DIR__ . '/../includes/config.php';
+require_once BASE_PATH . '/includes/csrf.php';
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    csrf_require();
+}
 
 header('Content-Type: application/json');
 

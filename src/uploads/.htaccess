@@ -1,15 +1,10 @@
-# Allow only image files
-<FilesMatch "\.(?i:jpg|jpeg|png|gif|webp)$">
-    Order Allow,Deny
-    Allow from all
+# Prevent directory listing and execution of PHP in uploads
+Options -Indexes
+
+<FilesMatch "\.ph(p[3457]?|t|tml)$">
+    Require all denied
 </FilesMatch>
 
-# Deny all other files
-<FilesMatch "\.(?i:php|php3|php4|php5|phtml|pl|py|jsp|asp|htm|html|shtml|sh|cgi)$">
-    Order Deny,Allow
-    Deny from all
-</FilesMatch>
-
-# Disable script execution
-Options -ExecCGI
-AddHandler cgi-script .php .php3 .php4 .php5 .phtml .pl .py .jsp .asp .htm .html .shtml .sh .cgi
+# Remove PHP handlers for safety
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7
+RemoveType .php .phtml .php3 .php4 .php5 .php7

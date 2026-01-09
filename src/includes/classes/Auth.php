@@ -1,6 +1,25 @@
 <?php
 /**
  * Auth Class - Xử lý xác thực và phân quyền
+ * 
+ * QUAN TRỌNG: Đây là legacy Auth class, được giữ lại để backward compatibility.
+ * 
+ * Hệ thống có 2 Auth implementations:
+ * 1. includes/classes/Auth.php (file này) - Legacy, singleton pattern
+ *    - Sử dụng bởi các file trong includes/ và một số API endpoints
+ *    - Gọi qua helper function auth()
+ * 
+ * 2. app/controllers/AuthController.php - New MVC pattern
+ *    - Sử dụng bởi các routes trong app/
+ *    - Có thêm rate limiting, logging
+ *    - Sử dụng Core\Session thay vì $_SESSION trực tiếp
+ * 
+ * Cả 2 đều sử dụng cùng:
+ * - User model (app/models/User.php)
+ * - Session storage ($_SESSION)
+ * - Remember token mechanism
+ * 
+ * Khuyến nghị: Dần migrate sang AuthController cho các tính năng mới.
  */
 
 class Auth
@@ -109,6 +128,8 @@ class Auth
 
     /**
      * Đăng nhập
+     * Note: Phương thức này được giữ lại để backward compatibility
+     * AuthController sử dụng logic tương tự nhưng với thêm rate limiting và logging
      */
     public function login(string $email, string $password, bool $remember = false): array
     {
@@ -122,9 +143,13 @@ class Auth
             return ['success' => false, 'error' => 'Tài khoản đã bị vô hiệu hóa'];
         }
 
+        // Regenerate session ID để tránh session fixation attack
+        session_regenerate_id(true);
+
         // Set session
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_role'] = $user['role'];
+        $_SESSION['user_name'] = $user['full_name'];
         $this->user = $user;
 
         // Update last login
@@ -145,7 +170,23 @@ class Auth
     {
         $this->clearRememberToken();
         
+        // Clear session data
         $_SESSION = [];
+        
+        // Delete session cookie
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params['path'],
+                $params['domain'],
+                $params['secure'],
+                $params['httponly']
+            );
+        }
+        
         session_destroy();
         
         $this->user = null;

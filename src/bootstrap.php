@@ -6,9 +6,14 @@
 // Define base path
 define('BASE_PATH', __DIR__);
 
-// Error reporting
+// Error reporting - respect APP_ENV or environment variable
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+$bootstrapEnv = getenv('APP_ENV') ?: ($_ENV['APP_ENV'] ?? 'development');
+if ($bootstrapEnv === 'production') {
+    ini_set('display_errors', 0);
+} else {
+    ini_set('display_errors', 1);
+}
 
 // Timezone
 date_default_timezone_set('Asia/Ho_Chi_Minh');
@@ -26,6 +31,7 @@ spl_autoload_register(function ($class) {
         'App\\Models\\' => 'app/models/',
         'App\\Middleware\\' => 'app/middleware/',
         'App\\Services\\' => 'app/services/',
+        'App\\Constants\\' => 'app/constants/',
     ];
     
     foreach ($namespaces as $namespace => $dir) {
@@ -47,8 +53,17 @@ spl_autoload_register(function ($class) {
     }
 });
 
-// Start session
+// Mark that session will be started by bootstrap
+define('SESSION_STARTED_BY_BOOTSTRAP', true);
+
+// Start session with proper security
 \Core\Session::start();
+
+// Regenerate session ID nếu chưa được khởi tạo (tránh session fixation)
+if (!\Core\Session::has('_session_initialized')) {
+    \Core\Session::regenerate();
+    \Core\Session::set('_session_initialized', true);
+}
 
 // Load helper functions
 require_once BASE_PATH . '/includes/functions.php';

@@ -15,6 +15,7 @@ if (Session::has('user_id')) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= \Core\CSRF::generate() ?>">
     <title><?= View::e($pageTitle ?? 'Tổng quan') ?> - TaskFlow</title>
     
     <!-- Tailwind CSS CDN -->
@@ -54,6 +55,12 @@ if (Session::has('user_id')) {
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- TaskFlow App JS -->
+    <script src="/php/public/js/app.js" defer></script>
+    
+    <!-- Real-time Notifications -->
+    <script src="/php/public/js/realtime-notifications.js" defer></script>
     
     <style>
         [x-cloak] { display: none !important; }
@@ -106,7 +113,13 @@ if (Session::has('user_id')) {
     </style>
 </head>
 <body class="font-sans antialiased bg-gray-50">
-    <div class="flex h-screen">
+    <div class="flex h-screen" x-data="{ sidebarOpen: window.innerWidth >= 768 }" @resize.window="sidebarOpen = window.innerWidth >= 768">
+        <!-- Mobile Sidebar Overlay -->
+        <div x-show="sidebarOpen && window.innerWidth < 768" 
+             @click="sidebarOpen = false" 
+             class="fixed inset-0 z-30 bg-black/50 md:hidden"
+             x-cloak></div>
+        
         <!-- Sidebar -->
         <?php View::partial('components/sidebar'); ?>
         
@@ -126,8 +139,8 @@ if (Session::has('user_id')) {
     <!-- Search Modal -->
     <?php View::partial('components/search-modal'); ?>
     
-    <!-- Toast Container -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    <!-- Toast Container - Adjusted position to avoid header overlap -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[9999] space-y-2"></div>
     
     <script>
         lucide.createIcons();
@@ -140,6 +153,21 @@ if (Session::has('user_id')) {
         function closeModal(id) {
             document.getElementById(id)?.classList.add('hidden');
         }
+        
+        // CSRF Token for AJAX requests
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        
+        // Global AJAX setup - auto-include CSRF token
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+            options.headers = options.headers || {};
+            if (typeof options.headers.set === 'function') {
+                options.headers.set('X-CSRF-Token', csrfToken);
+            } else {
+                options.headers['X-CSRF-Token'] = csrfToken;
+            }
+            return originalFetch(url, options);
+        };
         
         // Toast notification system
         function showToast(message, type = 'info', duration = 3000) {
@@ -160,7 +188,8 @@ if (Session::has('user_id')) {
                 info: 'info'
             };
             
-            toast.className = `flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-white ${colors[type]} transform transition-all duration-300 translate-x-full`;
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg text-white ${colors[type]} transform transition-all duration-300 translate-y-full opacity-0`;
+            toast.setAttribute('role', 'alert');
             toast.innerHTML = `
                 <i data-lucide="${icons[type]}" class="h-5 w-5"></i>
                 <span>${message}</span>
@@ -172,13 +201,15 @@ if (Session::has('user_id')) {
             container.appendChild(toast);
             lucide.createIcons();
             
-            // Animate in
-            setTimeout(() => toast.classList.remove('translate-x-full'), 10);
+            // Animate in (from bottom)
+            setTimeout(() => {
+                toast.classList.remove('translate-y-full', 'opacity-0');
+            }, 10);
             
             // Auto remove
             if (duration > 0) {
                 setTimeout(() => {
-                    toast.classList.add('translate-x-full', 'opacity-0');
+                    toast.classList.add('translate-y-full', 'opacity-0');
                     setTimeout(() => toast.remove(), 300);
                 }, duration);
             }

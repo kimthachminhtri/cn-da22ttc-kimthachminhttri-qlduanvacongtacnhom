@@ -10,6 +10,7 @@ use Core\View;
 use Core\Database;
 use Core\Logger;
 use Core\RateLimiter;
+use Core\Mailer;
 
 // Redirect if already logged in
 if (Session::has('user_id')) {
@@ -57,12 +58,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'reset_token_expiry' => $expiry,
                     ], 'id = ?', [$user['id']]);
                     
-                    // Log for development (in production, send email)
-                    Logger::info('Password reset requested', [
-                        'email' => $email,
-                        'token' => $token, // Remove in production!
-                        'reset_url' => "/php/reset-password.php?token={$token}"
-                    ]);
+                    // Send password reset email
+                    $resetUrl = "/php/reset-password.php?token={$token}";
+                    $emailSent = Mailer::sendPasswordReset(
+                        $user['email'],
+                        $user['full_name'],
+                        $resetUrl
+                    );
+                    
+                    if ($emailSent) {
+                        Logger::info('Password reset email sent', ['email' => $email]);
+                    } else {
+                        Logger::warning('Password reset email failed to send', ['email' => $email]);
+                    }
                     
                     $message = 'Nếu email tồn tại trong hệ thống, bạn sẽ nhận được hướng dẫn đặt lại mật khẩu.';
                     $messageType = 'success';

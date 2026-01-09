@@ -10,7 +10,7 @@
     <div class="text-center">
         <h1 class="text-9xl font-bold text-gray-200">404</h1>
         <h2 class="text-2xl font-semibold text-gray-900 mt-4">Không tìm thấy trang</h2>
-        <p class="text-gray-500 mt-2">Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.</p>
+        <p class="text-gray-500 mt-2"><?= isset($message) ? \Core\View::e($message) : 'Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.' ?></p>
         <a href="/php/index.php" class="inline-block mt-6 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
             Về trang chủ
         </a>

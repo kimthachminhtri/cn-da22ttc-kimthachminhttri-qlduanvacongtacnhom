@@ -4,9 +4,14 @@
  */
 
 require_once __DIR__ . '/../bootstrap.php';
-
+require_once BASE_PATH . '/includes/csrf.php';
 use Core\Session;
 use Core\Permission;
+
+// Enforce CSRF for non-GET requests
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    csrf_require();
+}
 
 Session::start();
 
@@ -38,7 +43,7 @@ if (empty($_FILES['files']) || $_FILES['files']['error'][0] === UPLOAD_ERR_NO_FI
     exit;
 }
 
-// Allowed file types
+// Allowed file types with magic bytes validation
 $allowedTypes = [
     'application/pdf' => 'pdf',
     'application/msword' => 'doc',
@@ -55,6 +60,37 @@ $allowedTypes = [
     'application/x-zip-compressed' => 'zip',
     'text/plain' => 'other',
 ];
+
+// Dangerous extensions that should never be allowed
+$dangerousExtensions = ['php', 'phtml', 'php3', 'php4', 'php5', 'php7', 'phar', 'exe', 'sh', 'bat', 'cmd', 'com', 'scr', 'js', 'vbs', 'wsf', 'asp', 'aspx', 'jsp', 'cgi', 'pl', 'py', 'rb', 'htaccess', 'htpasswd'];
+
+/**
+ * Validate file is not dangerous
+ */
+function isFileSafe($filename, $tmpPath, $dangerousExtensions) {
+    // Check for double extensions (e.g., file.php.jpg)
+    $parts = explode('.', strtolower($filename));
+    foreach ($parts as $part) {
+        if (in_array($part, $dangerousExtensions)) {
+            return false;
+        }
+    }
+    
+    // Check file content for PHP code
+    $content = file_get_contents($tmpPath, false, null, 0, 1024);
+    if ($content !== false) {
+        // Check for PHP opening tags
+        if (preg_match('/<\?php|<\?=|<\?(?!\s*xml)/i', $content)) {
+            return false;
+        }
+        // Check for script tags
+        if (preg_match('/<script/i', $content)) {
+            return false;
+        }
+    }
+    
+    return true;
+}
 
 $maxSize = 50 * 1024 * 1024; // 50MB
 $uploadDir = __DIR__ . '/../uploads/documents/';
@@ -81,7 +117,9 @@ try {
         $fileName = $files['name'][$i];
         $fileSize = $files['size'][$i];
         $fileTmp = $files['tmp_name'][$i];
-        $fileType = $files['type'][$i];
+            // Prefer server-detected MIME type to avoid trusting client-provided value
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $fileType = $finfo->file($fileTmp) ?: ($files['type'][$i] ?? 'application/octet-stream');
         
         // Validate size
         if ($fileSize > $maxSize) {
@@ -89,9 +127,42 @@ try {
             continue;
         }
         
-        // Get file extension and type
+        // Get file extension and determine extension from MIME if necessary
         $ext = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         $docType = $allowedTypes[$fileType] ?? 'other';
+
+        // Map some MIME types to common extensions when client extension is missing or suspicious
+        $mimeToExt = [
+            'application/pdf' => 'pdf',
+            'application/msword' => 'doc',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+            'application/vnd.ms-excel' => 'xls',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
+            'application/vnd.ms-powerpoint' => 'ppt',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation' => 'pptx',
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            'application/zip' => 'zip',
+            'text/plain' => 'txt',
+        ];
+
+        if (empty($ext) || !in_array($fileType, array_keys($allowedTypes))) {
+            $ext = $mimeToExt[$fileType] ?? ($ext ?: 'bin');
+        }
+
+        // Reject files with disallowed MIME types
+        if (!array_key_exists($fileType, $allowedTypes)) {
+            $errors[] = $fileName . ': Loại file không được phép';
+            continue;
+        }
+        
+        // Security check: validate file is safe
+        if (!isFileSafe($fileName, $fileTmp, $dangerousExtensions)) {
+            $errors[] = $fileName . ': File chứa nội dung không an toàn';
+            continue;
+        }
         
         // Generate unique filename
         $docId = sprintf(
@@ -106,11 +177,13 @@ try {
         $storedName = $docId . '.' . $ext;
         $filePath = $uploadDir . $storedName;
         
-        // Move uploaded file
+        // Move uploaded file to storage and set safe permissions
         if (!move_uploaded_file($fileTmp, $filePath)) {
             $errors[] = $fileName . ': Không thể lưu file';
             continue;
         }
+        // Ensure file is not executable
+        @chmod($filePath, 0644);
         
         // Insert to database
         $db->insert('documents', [

@@ -22,16 +22,26 @@ View::section('content');
                     <i data-lucide="chevron-down" class="h-4 w-4"></i>
                 </button>
                 <div x-show="open" @click.away="open = false" x-cloak
-                     class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
-                    <a href="/php/api/admin-export.php?type=users&format=csv" 
-                       class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        <i data-lucide="file-text" class="h-4 w-4"></i>
-                        Export CSV
+                     class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
+                    <a href="/php/api/admin-export.php?type=users&format=excel" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="file-spreadsheet" class="h-4 w-4 text-green-600"></i>
+                        Excel (.xlsx)
                     </a>
-                    <a href="/php/api/admin-export.php?type=users&format=json" 
-                       class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        <i data-lucide="file-json" class="h-4 w-4"></i>
-                        Export JSON
+                    <a href="/php/api/admin-export.php?type=users&format=pdf" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="file-text" class="h-4 w-4 text-red-600"></i>
+                        PDF
+                    </a>
+                    <a href="/php/api/admin-export.php?type=users&format=csv" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="file" class="h-4 w-4 text-blue-600"></i>
+                        CSV
+                    </a>
+                    <a href="/php/api/admin-export.php?type=users&format=json" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="file-json" class="h-4 w-4 text-yellow-600"></i>
+                        JSON
                     </a>
                 </div>
             </div>
@@ -101,23 +111,37 @@ View::section('content');
     </div>
 
     <!-- Bulk Actions Bar -->
-    <div id="bulk-actions" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between">
+    <div id="bulk-toolbar" class="hidden bg-blue-50 border border-blue-200 rounded-xl p-4 items-center justify-between">
         <div class="flex items-center gap-3">
             <span class="text-sm text-blue-700">
                 <span id="selected-count" class="font-bold">0</span> người dùng được chọn
             </span>
         </div>
         <div class="flex items-center gap-2">
-            <button onclick="bulkAction('activate')" class="px-3 py-1.5 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+            <button onclick="bulkOps.activate()" class="px-3 py-1.5 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
                 <i data-lucide="check" class="h-4 w-4 inline mr-1"></i>Kích hoạt
             </button>
-            <button onclick="bulkAction('deactivate')" class="px-3 py-1.5 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+            <button onclick="bulkOps.deactivate()" class="px-3 py-1.5 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
                 <i data-lucide="x" class="h-4 w-4 inline mr-1"></i>Vô hiệu
             </button>
-            <button onclick="bulkAction('delete')" class="px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+            <!-- Role Change -->
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open" class="px-3 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors inline-flex items-center gap-1">
+                    <i data-lucide="shield" class="h-4 w-4"></i>
+                    Đổi vai trò
+                    <i data-lucide="chevron-down" class="h-3 w-3"></i>
+                </button>
+                <div x-show="open" @click.away="open = false" x-cloak class="absolute left-0 mt-1 w-36 bg-white rounded-lg shadow-lg border z-50">
+                    <button onclick="bulkOps.changeRole('admin')" class="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-gray-50">Admin</button>
+                    <button onclick="bulkOps.changeRole('manager')" class="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-gray-50">Manager</button>
+                    <button onclick="bulkOps.changeRole('member')" class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Member</button>
+                    <button onclick="bulkOps.changeRole('guest')" class="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50">Guest</button>
+                </div>
+            </div>
+            <button onclick="bulkOps.delete()" class="px-3 py-1.5 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
                 <i data-lucide="trash-2" class="h-4 w-4 inline mr-1"></i>Xóa
             </button>
-            <button onclick="clearSelection()" class="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800">
+            <button onclick="bulkOps.clearSelection()" class="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800">
                 Bỏ chọn
             </button>
         </div>
@@ -130,7 +154,7 @@ View::section('content');
                 <thead class="bg-gray-50 border-b border-gray-100">
                     <tr>
                         <th class="px-6 py-4 text-left">
-                            <input type="checkbox" id="select-all" onchange="toggleSelectAll(this)"
+                            <input type="checkbox" id="select-all"
                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                         </th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase">Người dùng</th>
@@ -146,8 +170,8 @@ View::section('content');
                         <?php foreach ($users as $user): ?>
                         <tr class="hover:bg-gray-50 transition-colors" data-user-id="<?= $user['id'] ?>">
                             <td class="px-6 py-4">
-                                <input type="checkbox" class="user-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                       value="<?= $user['id'] ?>" onchange="updateBulkActions()">
+                                <input type="checkbox" class="bulk-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                       data-id="<?= $user['id'] ?>">
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
@@ -278,72 +302,9 @@ View::section('content');
     </div>
 </div>
 
+<script src="/php/public/js/bulk-operations.js"></script>
 <script>
-// Bulk selection
-function toggleSelectAll(checkbox) {
-    document.querySelectorAll('.user-checkbox').forEach(cb => {
-        cb.checked = checkbox.checked;
-    });
-    updateBulkActions();
-}
-
-function updateBulkActions() {
-    const checked = document.querySelectorAll('.user-checkbox:checked');
-    const bulkBar = document.getElementById('bulk-actions');
-    const countSpan = document.getElementById('selected-count');
-    
-    if (checked.length > 0) {
-        bulkBar.classList.remove('hidden');
-        countSpan.textContent = checked.length;
-    } else {
-        bulkBar.classList.add('hidden');
-    }
-    
-    // Update select all checkbox
-    const allCheckboxes = document.querySelectorAll('.user-checkbox');
-    document.getElementById('select-all').checked = checked.length === allCheckboxes.length && allCheckboxes.length > 0;
-}
-
-function clearSelection() {
-    document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = false);
-    document.getElementById('select-all').checked = false;
-    updateBulkActions();
-}
-
-function getSelectedIds() {
-    return Array.from(document.querySelectorAll('.user-checkbox:checked')).map(cb => cb.value);
-}
-
-async function bulkAction(action) {
-    const ids = getSelectedIds();
-    if (ids.length === 0) return;
-    
-    const actionText = {
-        'activate': 'kích hoạt',
-        'deactivate': 'vô hiệu hóa',
-        'delete': 'xóa'
-    };
-    
-    if (!confirm(`Bạn có chắc muốn ${actionText[action]} ${ids.length} người dùng?`)) return;
-    
-    try {
-        const response = await fetch('/php/api/admin-users.php?action=bulk', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action, user_ids: ids })
-        });
-        const data = await response.json();
-        
-        if (data.success) {
-            showToast(`Đã ${actionText[action]} ${ids.length} người dùng`, 'success');
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            showToast(data.error || 'Có lỗi xảy ra', 'error');
-        }
-    } catch (e) {
-        showToast('Có lỗi xảy ra', 'error');
-    }
-}
+const bulkOps = new BulkOperations({ entity: 'users' });
 
 // Single user actions
 async function updateUserRole(userId, role) {

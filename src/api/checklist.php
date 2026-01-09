@@ -5,6 +5,10 @@
 
 ob_start();
 require_once __DIR__ . '/../bootstrap.php';
+require_once BASE_PATH . '/includes/csrf.php';
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    csrf_require();
+}
 
 // Tắt display errors SAU khi load bootstrap
 ini_set('display_errors', 0);

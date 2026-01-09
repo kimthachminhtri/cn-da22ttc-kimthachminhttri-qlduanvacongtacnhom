@@ -121,25 +121,100 @@ class DashboardController extends BaseController
         ]);
     }
 
-    private function getRecentActivities(): array
+    /**
+     * Get recent activities from database
+     * Query từ bảng activity_logs với format phù hợp cho hiển thị
+     */
+    private function getRecentActivities(int $limit = 10): array
     {
-        // TODO: Implement activity log from database
-        return [
-            [
-                'user_name' => 'Nguyễn Văn A',
-                'description' => 'Đã hoàn thành task "Thiết kế UI"',
-                'time_ago' => '5 phút trước',
-            ],
-            [
-                'user_name' => 'Trần Thị B',
-                'description' => 'Đã tạo dự án mới "Website Redesign"',
-                'time_ago' => '1 giờ trước',
-            ],
-            [
-                'user_name' => 'Lê Văn C',
-                'description' => 'Đã comment vào task "API Integration"',
-                'time_ago' => '2 giờ trước',
-            ],
+        $db = \Core\Database::getInstance();
+        
+        $activities = $db->fetchAll(
+            "SELECT al.*, u.full_name as user_name, u.avatar_url
+             FROM activity_logs al
+             LEFT JOIN users u ON al.user_id = u.id
+             ORDER BY al.created_at DESC
+             LIMIT ?",
+            [$limit]
+        );
+        
+        // Format activities for display
+        $formatted = [];
+        foreach ($activities as $activity) {
+            $description = $this->formatActivityDescription($activity);
+            $formatted[] = [
+                'id' => $activity['id'],
+                'user_id' => $activity['user_id'],
+                'user_name' => $activity['user_name'] ?? 'Hệ thống',
+                'avatar_url' => $activity['avatar_url'] ?? null,
+                'description' => $description,
+                'entity_type' => $activity['entity_type'],
+                'entity_id' => $activity['entity_id'],
+                'action' => $activity['action'],
+                'time_ago' => $this->timeAgo($activity['created_at']),
+                'created_at' => $activity['created_at'],
+            ];
+        }
+        
+        return $formatted;
+    }
+
+    /**
+     * Format activity description based on action and entity type
+     */
+    private function formatActivityDescription(array $activity): string
+    {
+        $action = $activity['action'] ?? '';
+        $entityType = $activity['entity_type'] ?? '';
+        $newValues = $activity['new_values'] ? json_decode($activity['new_values'], true) : [];
+        
+        $entityNames = [
+            'task' => 'công việc',
+            'project' => 'dự án',
+            'document' => 'tài liệu',
+            'comment' => 'bình luận',
+            'user' => 'người dùng',
         ];
+        
+        $actionNames = [
+            'create' => 'đã tạo',
+            'update' => 'đã cập nhật',
+            'delete' => 'đã xóa',
+            'complete' => 'đã hoàn thành',
+            'assign' => 'đã giao',
+            'comment' => 'đã bình luận vào',
+            'upload' => 'đã tải lên',
+            'login' => 'đã đăng nhập',
+            'logout' => 'đã đăng xuất',
+        ];
+        
+        $entityName = $entityNames[$entityType] ?? $entityType;
+        $actionName = $actionNames[$action] ?? $action;
+        
+        // Get entity title/name from new_values if available
+        $title = $newValues['title'] ?? $newValues['name'] ?? '';
+        
+        if ($title) {
+            return "{$actionName} {$entityName} \"{$title}\"";
+        }
+        
+        return "{$actionName} {$entityName}";
+    }
+
+    /**
+     * Calculate time ago from datetime
+     */
+    private function timeAgo(string $datetime): string
+    {
+        $time = strtotime($datetime);
+        $diff = time() - $time;
+        
+        if ($diff < 60) return 'Vừa xong';
+        if ($diff < 3600) return floor($diff / 60) . ' phút trước';
+        if ($diff < 86400) return floor($diff / 3600) . ' giờ trước';
+        if ($diff < 604800) return floor($diff / 86400) . ' ngày trước';
+        if ($diff < 2592000) return floor($diff / 604800) . ' tuần trước';
+        
+        return date('d/m/Y', $time);
     }
 }

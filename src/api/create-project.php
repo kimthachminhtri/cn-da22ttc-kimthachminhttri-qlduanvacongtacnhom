@@ -3,6 +3,10 @@
  * API: Create Project
  */
 require_once __DIR__ . '/../bootstrap.php';
+require_once BASE_PATH . '/includes/csrf.php';
+if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+    csrf_require();
+}
 
 use App\Models\Project;
 use App\Middleware\AuthMiddleware;
@@ -51,7 +55,7 @@ $wantsJson = strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false
 if (empty($name)) {
     if ($isAjax || $wantsJson) {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'error' => 'Tên dự án là bắt buộc']);
+        echo json_encode(['success' => false, 'error' => 'Tên dự án là bắt buộc', 'field' => 'name']);
     } else {
         Session::flash('error', 'Tên dự án là bắt buộc');
         header('Location: /php/projects.php');
@@ -62,7 +66,7 @@ if (empty($name)) {
 if (strlen($name) < 2) {
     if ($isAjax || $wantsJson) {
         header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'error' => 'Tên dự án phải có ít nhất 2 ký tự']);
+        echo json_encode(['success' => false, 'error' => 'Tên dự án phải có ít nhất 2 ký tự', 'field' => 'name']);
     } else {
         Session::flash('error', 'Tên dự án phải có ít nhất 2 ký tự');
         header('Location: /php/projects.php');
@@ -73,6 +77,7 @@ if (strlen($name) < 2) {
 try {
     $projectModel = new Project();
     $userId = Session::get('user_id');
+    $db = \Core\Database::getInstance();
     
     // Generate UUID
     $projectId = sprintf(
@@ -84,22 +89,32 @@ try {
         mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
     );
     
-    // Create project
-    $projectModel->create([
-        'id' => $projectId,
-        'name' => $name,
-        'description' => $description,
-        'color' => $color,
-        'status' => 'planning',
-        'priority' => $priority,
-        'progress' => 0,
-        'start_date' => $startDate ?: null,
-        'end_date' => $endDate ?: null,
-        'created_by' => $userId,
-    ]);
+    // Use transaction to ensure atomicity
+    $db->beginTransaction();
     
-    // Add creator as owner
-    $projectModel->addMember($projectId, $userId, 'owner');
+    try {
+        // Create project
+        $projectModel->create([
+            'id' => $projectId,
+            'name' => $name,
+            'description' => $description,
+            'color' => $color,
+            'status' => 'planning',
+            'priority' => $priority,
+            'progress' => 0,
+            'start_date' => $startDate ?: null,
+            'end_date' => $endDate ?: null,
+            'created_by' => $userId,
+        ]);
+        
+        // Add creator as owner
+        $projectModel->addMember($projectId, $userId, 'owner');
+        
+        $db->commit();
+    } catch (Exception $e) {
+        $db->rollback();
+        throw $e;
+    }
     
     if ($isAjax || $wantsJson) {
         header('Content-Type: application/json');

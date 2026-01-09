@@ -58,6 +58,33 @@ View::section('content');
             
             <?php if ($canEditProject): ?>
             <div class="flex items-center gap-2">
+                <!-- Export Project Report -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" 
+                            class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
+                        <i data-lucide="download" class="h-4 w-4"></i>
+                        Xuất
+                    </button>
+                    <div x-show="open" @click.away="open = false" x-cloak
+                         class="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                        <a href="/php/api/export-report.php?type=project-tasks&project_id=<?= View::e($project['id']) ?>&format=excel" target="_blank"
+                           class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            <i data-lucide="file-spreadsheet" class="h-4 w-4 text-green-600"></i>
+                            Công việc (Excel)
+                        </a>
+                        <a href="/php/api/export-report.php?type=project-tasks&project_id=<?= View::e($project['id']) ?>&format=pdf" target="_blank"
+                           class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            <i data-lucide="file-text" class="h-4 w-4 text-red-600"></i>
+                            Công việc (PDF)
+                        </a>
+                        <a href="/php/api/export-report.php?type=project-tasks&project_id=<?= View::e($project['id']) ?>&format=csv" target="_blank"
+                           class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            <i data-lucide="file" class="h-4 w-4 text-blue-600"></i>
+                            Công việc (CSV)
+                        </a>
+                    </div>
+                </div>
+                
                 <button onclick="openModal('edit-project-modal')" 
                         class="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
                     <i data-lucide="edit" class="h-4 w-4"></i>

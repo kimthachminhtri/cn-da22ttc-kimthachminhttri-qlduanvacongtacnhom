@@ -492,9 +492,218 @@ class AdminController extends BaseController
 
     public function backup(): void
     {
+        // Get backup history (from storage/backups directory)
+        $backupDir = BASE_PATH . '/storage/backups';
+        $backups = [];
+        
+        if (is_dir($backupDir)) {
+            $files = glob($backupDir . '/*.sql');
+            foreach ($files as $file) {
+                $backups[] = [
+                    'filename' => basename($file),
+                    'size' => filesize($file),
+                    'created_at' => date('Y-m-d H:i:s', filemtime($file)),
+                ];
+            }
+            // Sort by date descending
+            usort($backups, fn($a, $b) => strtotime($b['created_at']) - strtotime($a['created_at']));
+        }
+        
+        // Get database stats
+        $dbStats = [
+            'tables' => count($this->db->fetchAll("SHOW TABLES")),
+            'size' => $this->db->fetchColumn(
+                "SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) 
+                 FROM information_schema.tables 
+                 WHERE table_schema = DATABASE()"
+            ) ?? 0,
+        ];
+        
+        // Get upload folder size
+        $uploadSize = $this->getDirectorySize(BASE_PATH . '/uploads');
+        
         $this->view('admin/backup', [
+            'backups' => $backups,
+            'dbStats' => $dbStats,
+            'uploadSize' => $uploadSize,
             'pageTitle' => 'Backup & Restore',
         ], 'admin');
+    }
+
+    /**
+     * Create a new backup
+     */
+    public function createBackup(): void
+    {
+        try {
+            $backupDir = BASE_PATH . '/storage/backups';
+            if (!is_dir($backupDir)) {
+                mkdir($backupDir, 0755, true);
+            }
+            
+            $filename = 'taskflow_backup_' . date('Y-m-d_His') . '.sql';
+            $filepath = $backupDir . '/' . $filename;
+            
+            $sql = $this->generateBackupSQL();
+            
+            if (file_put_contents($filepath, $sql) !== false) {
+                $this->success('Tạo backup thành công: ' . $filename);
+            } else {
+                $this->error('Không thể tạo file backup');
+            }
+        } catch (\Exception $e) {
+            $this->error('Lỗi: ' . $e->getMessage());
+        }
+        
+        $this->redirect('/php/admin/backup.php');
+    }
+
+    /**
+     * Delete a backup file
+     */
+    public function deleteBackup(): void
+    {
+        $filename = $_POST['filename'] ?? $_GET['filename'] ?? null;
+        
+        if (!$filename) {
+            $this->json(['success' => false, 'error' => 'Thiếu tên file'], 400);
+            return;
+        }
+        
+        // Sanitize filename to prevent directory traversal
+        $filename = basename($filename);
+        $filepath = BASE_PATH . '/storage/backups/' . $filename;
+        
+        if (!file_exists($filepath)) {
+            $this->json(['success' => false, 'error' => 'File không tồn tại'], 404);
+            return;
+        }
+        
+        if (unlink($filepath)) {
+            $this->json(['success' => true, 'message' => 'Đã xóa backup']);
+        } else {
+            $this->json(['success' => false, 'error' => 'Không thể xóa file'], 500);
+        }
+    }
+
+    /**
+     * Restore from a backup file
+     */
+    public function restoreBackup(): void
+    {
+        $filename = $_POST['filename'] ?? null;
+        
+        if (!$filename) {
+            $this->error('Thiếu tên file backup');
+            $this->redirect('/php/admin/backup.php');
+            return;
+        }
+        
+        // Sanitize filename
+        $filename = basename($filename);
+        $filepath = BASE_PATH . '/storage/backups/' . $filename;
+        
+        if (!file_exists($filepath)) {
+            $this->error('File backup không tồn tại');
+            $this->redirect('/php/admin/backup.php');
+            return;
+        }
+        
+        try {
+            $sql = file_get_contents($filepath);
+            
+            // Split SQL into statements
+            $statements = array_filter(
+                array_map('trim', explode(';', $sql)),
+                fn($s) => !empty($s) && !str_starts_with($s, '--')
+            );
+            
+            $this->db->beginTransaction();
+            
+            foreach ($statements as $statement) {
+                if (!empty(trim($statement))) {
+                    $this->db->query($statement);
+                }
+            }
+            
+            $this->db->commit();
+            $this->success('Khôi phục dữ liệu thành công từ: ' . $filename);
+            
+        } catch (\Exception $e) {
+            $this->db->rollback();
+            $this->error('Lỗi khôi phục: ' . $e->getMessage());
+        }
+        
+        $this->redirect('/php/admin/backup.php');
+    }
+
+    /**
+     * Generate SQL backup content
+     */
+    private function generateBackupSQL(): string
+    {
+        $tables = $this->db->fetchAll("SHOW TABLES");
+        
+        $sql = "-- =============================================\n";
+        $sql .= "-- TaskFlow Database Backup\n";
+        $sql .= "-- Generated: " . date('Y-m-d H:i:s') . "\n";
+        $sql .= "-- Database: taskflow2\n";
+        $sql .= "-- =============================================\n\n";
+        $sql .= "SET NAMES utf8mb4;\n";
+        $sql .= "SET FOREIGN_KEY_CHECKS = 0;\n\n";
+        
+        foreach ($tables as $table) {
+            $tableName = array_values($table)[0];
+            
+            // Get create table statement
+            $createTable = $this->db->fetchOne("SHOW CREATE TABLE `{$tableName}`");
+            $sql .= "-- Table: {$tableName}\n";
+            $sql .= "DROP TABLE IF EXISTS `{$tableName}`;\n";
+            $sql .= $createTable['Create Table'] . ";\n\n";
+            
+            // Get table data
+            $rows = $this->db->fetchAll("SELECT * FROM `{$tableName}`");
+            if (!empty($rows)) {
+                $sql .= "-- Data for {$tableName}\n";
+                foreach ($rows as $row) {
+                    $values = array_map(function($v) {
+                        if ($v === null) return 'NULL';
+                        return "'" . addslashes($v) . "'";
+                    }, array_values($row));
+                    $sql .= "INSERT INTO `{$tableName}` VALUES (" . implode(', ', $values) . ");\n";
+                }
+                $sql .= "\n";
+            }
+        }
+        
+        $sql .= "SET FOREIGN_KEY_CHECKS = 1;\n";
+        $sql .= "-- End of backup\n";
+        
+        return $sql;
+    }
+
+    /**
+     * Get directory size recursively
+     */
+    private function getDirectorySize(string $path): int
+    {
+        $size = 0;
+        
+        if (!is_dir($path)) {
+            return $size;
+        }
+        
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS)
+        );
+        
+        foreach ($iterator as $file) {
+            if ($file->isFile()) {
+                $size += $file->getSize();
+            }
+        }
+        
+        return $size;
     }
 
     public function reports(): void

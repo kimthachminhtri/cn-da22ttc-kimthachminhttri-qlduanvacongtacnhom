@@ -62,14 +62,48 @@ $priorityColors = [
                     Xuất báo cáo
                 </button>
                 <div x-show="open" @click.away="open = false" x-cloak
-                     class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
-                    <a href="/php/api/admin-reports.php?format=pdf&period=<?= $period ?>" 
+                     class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50">
+                    <div class="px-3 py-2 border-b border-gray-100">
+                        <p class="text-xs font-semibold text-gray-400 uppercase">Excel (.xlsx)</p>
+                    </div>
+                    <a href="/php/api/admin-export.php?type=tasks_summary&format=excel" target="_blank"
                        class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        <i data-lucide="file-text" class="h-4 w-4"></i>Export PDF
+                        <i data-lucide="file-spreadsheet" class="h-4 w-4 text-green-600"></i>
+                        Tổng hợp công việc
                     </a>
-                    <a href="/php/api/admin-reports.php?format=excel&period=<?= $period ?>" 
+                    <a href="/php/api/admin-export.php?type=team_performance&format=excel" target="_blank"
                        class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                        <i data-lucide="table" class="h-4 w-4"></i>Export Excel
+                        <i data-lucide="file-spreadsheet" class="h-4 w-4 text-green-600"></i>
+                        Hiệu suất nhân viên
+                    </a>
+                    <a href="/php/api/admin-export.php?type=overdue_tasks&format=excel" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="file-spreadsheet" class="h-4 w-4 text-green-600"></i>
+                        Công việc quá hạn
+                    </a>
+                    <a href="/php/api/admin-export.php?type=dashboard_summary&format=excel" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="file-spreadsheet" class="h-4 w-4 text-green-600"></i>
+                        Tổng quan hệ thống
+                    </a>
+                    
+                    <div class="px-3 py-2 border-t border-b border-gray-100 mt-1">
+                        <p class="text-xs font-semibold text-gray-400 uppercase">PDF</p>
+                    </div>
+                    <a href="/php/api/admin-export.php?type=tasks_summary&format=pdf" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="file-text" class="h-4 w-4 text-red-600"></i>
+                        Tổng hợp công việc
+                    </a>
+                    <a href="/php/api/admin-export.php?type=team_performance&format=pdf" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="file-text" class="h-4 w-4 text-red-600"></i>
+                        Hiệu suất nhân viên
+                    </a>
+                    <a href="/php/api/admin-export.php?type=overdue_tasks&format=pdf" target="_blank"
+                       class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <i data-lucide="file-text" class="h-4 w-4 text-red-600"></i>
+                        Công việc quá hạn
                     </a>
                 </div>
             </div>

@@ -10,7 +10,20 @@ $userRole = Session::get('user_role', 'guest');
 $userId = Session::get('user_id');
 
 // Check permission
-$canEdit = Permission::can($userRole, 'tasks.edit') || ($task['created_by'] ?? '') === $userId;
+$isAssigned = false;
+foreach ($task['assignees'] ?? [] as $assignee) {
+    if ($assignee['id'] === $userId) {
+        $isAssigned = true;
+        break;
+    }
+}
+
+// Full edit: Admin, Manager (general or project), Creator
+// Note: Project Manager check here is simplified via userRole 'manager' or 'admin'
+// For stricter project-level check, we rely on API. Here it's mainly for UX.
+$hasFullEdit = Permission::can($userRole, 'tasks.edit') || ($task['created_by'] ?? '') === $userId;
+
+$canEdit = $hasFullEdit || $isAssigned;
 $canDelete = Permission::can($userRole, 'tasks.delete') || ($task['created_by'] ?? '') === $userId;
 
 View::section('content');
@@ -72,6 +85,8 @@ View::section('content');
         </div>
     </div>
 
+    <!-- ... (No changes here) -->
+    
     <div class="grid gap-6 lg:grid-cols-3">
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-6">
@@ -420,12 +435,14 @@ View::section('content');
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Tiêu đề *</label>
                     <input type="text" name="title" required value="<?= View::e($task['title'] ?? '') ?>"
-                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary">
+                           <?= !$hasFullEdit ? 'disabled' : '' ?>
+                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary disabled:bg-gray-100 disabled:text-gray-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
                     <textarea name="description" rows="3"
-                              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary"><?= View::e($task['description'] ?? '') ?></textarea>
+                              <?= !$hasFullEdit ? 'disabled' : '' ?>
+                              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary disabled:bg-gray-100 disabled:text-gray-500"><?= View::e($task['description'] ?? '') ?></textarea>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -440,7 +457,7 @@ View::section('content');
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Độ ưu tiên</label>
-                        <select name="priority" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                        <select name="priority" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-500" <?= !$hasFullEdit ? 'disabled' : '' ?>>
                             <option value="low" <?= ($task['priority'] ?? '') === 'low' ? 'selected' : '' ?>>Thấp</option>
                             <option value="medium" <?= ($task['priority'] ?? '') === 'medium' ? 'selected' : '' ?>>Trung bình</option>
                             <option value="high" <?= ($task['priority'] ?? '') === 'high' ? 'selected' : '' ?>>Cao</option>
@@ -451,7 +468,8 @@ View::section('content');
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Ngày hết hạn</label>
                     <input type="date" name="due_date" value="<?= View::e($task['due_date'] ?? '') ?>"
-                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
+                           <?= !$hasFullEdit ? 'disabled' : '' ?>
+                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-500">
                 </div>
                 <div class="flex justify-end gap-3 pt-4">
                     <button type="button" onclick="closeModal('edit-task-modal')" 
@@ -468,23 +486,31 @@ View::section('content');
 <script>
 const taskId = '<?= View::e($task['id'] ?? '') ?>';
 
-// Delete task
-function confirmDeleteTask() {
-    if (!confirm('Bạn có chắc muốn xóa công việc này?')) return;
+// Delete task - Using ConfirmDialog
+async function confirmDeleteTask() {
+    const confirmed = await ConfirmDialog.confirmDelete('công việc này');
+    if (!confirmed) return;
     
-    fetch('/php/api/update-task.php?id=' + taskId, { 
-        method: 'DELETE',
-        headers: { 'Accept': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(data => {
+    LoadingState.showFullPage('Đang xóa...');
+    
+    try {
+        const response = await fetch('/php/api/update-task.php?id=' + taskId, { 
+            method: 'DELETE',
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await response.json();
+        
         if (data.success) {
-            window.location.href = '/php/tasks.php';
+            showToast('Đã xóa công việc thành công', 'success');
+            setTimeout(() => window.location.href = '/php/tasks.php', 500);
         } else {
-            alert(data.error || 'Có lỗi xảy ra');
+            showToast(data.error || 'Có lỗi xảy ra', 'error');
         }
-    })
-    .catch(err => alert('Lỗi kết nối: ' + err.message));
+    } catch (err) {
+        showToast('Lỗi kết nối: ' + err.message, 'error');
+    } finally {
+        LoadingState.hideFullPage();
+    }
 }
 
 // Edit task form
@@ -512,12 +538,13 @@ document.getElementById('edit-task-form')?.addEventListener('submit', function(e
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            location.reload();
+            showToast('Đã cập nhật công việc', 'success');
+            setTimeout(() => location.reload(), 500);
         } else {
-            alert(data.error || 'Có lỗi xảy ra');
+            showToast(data.error || 'Có lỗi xảy ra', 'error');
         }
     })
-    .catch(err => alert('Lỗi kết nối: ' + err.message));
+    .catch(err => showToast('Lỗi kết nối: ' + err.message, 'error'));
 });
 
 // Checklist - Toggle item
@@ -542,7 +569,7 @@ function toggleChecklistItem(itemId) {
     .then(r => r.json())
     .then(data => {
         if (!data.success) {
-            alert(data.error || 'Có lỗi xảy ra');
+            showToast(data.error || 'Có lỗi xảy ra', 'error');
             location.reload();
         }
     })
@@ -576,14 +603,20 @@ function addChecklistItem() {
         if (data.success) {
             location.reload();
         } else {
-            alert(data.error || 'Có lỗi xảy ra');
+            showToast(data.error || 'Có lỗi xảy ra', 'error');
         }
     })
-    .catch(err => alert('Lỗi kết nối: ' + err.message));
+    .catch(err => showToast('Lỗi kết nối: ' + err.message, 'error'));
 }
 
-function deleteChecklistItem(itemId) {
-    if (!confirm('Xóa mục này?')) return;
+async function deleteChecklistItem(itemId) {
+    const confirmed = await ConfirmDialog.show({
+        title: 'Xóa mục checklist',
+        message: 'Bạn có chắc muốn xóa mục này?',
+        confirmText: 'Xóa',
+        type: 'danger'
+    });
+    if (!confirmed) return;
     
     fetch('/php/api/checklist.php?item_id=' + itemId, {
         method: 'DELETE',
@@ -592,12 +625,19 @@ function deleteChecklistItem(itemId) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            location.reload();
+            // Remove from DOM
+            const item = document.querySelector(`[data-item-id="${itemId}"]`);
+            if (item) {
+                item.remove();
+                showToast('Đã xóa mục', 'success');
+            } else {
+                location.reload();
+            }
         } else {
-            alert(data.error || 'Có lỗi xảy ra');
+            showToast(data.error || 'Có lỗi xảy ra', 'error');
         }
     })
-    .catch(err => alert('Lỗi kết nối: ' + err.message));
+    .catch(err => showToast('Lỗi kết nối: ' + err.message, 'error'));
 }
 
 // Comments - Add new comment
@@ -607,6 +647,9 @@ function addComment() {
     const textarea = document.querySelector('.comment-input');
     const content = textarea?.value.trim();
     if (!content) return;
+    
+    const submitBtn = document.querySelector('.comment-submit-btn');
+    if (window.LoadingState) LoadingState.showButton(submitBtn, 'Đang gửi...');
     
     fetch('/php/api/comments.php', {
         method: 'POST',
@@ -628,12 +671,16 @@ function addComment() {
     })
     .then(data => {
         if (data.success) {
-            location.reload();
+            showToast('Đã thêm bình luận', 'success');
+            setTimeout(() => location.reload(), 500);
         } else {
-            alert(data.error || 'Có lỗi xảy ra');
+            showToast(data.error || 'Có lỗi xảy ra', 'error');
         }
     })
-    .catch(err => alert('Lỗi kết nối: ' + err.message));
+    .catch(err => showToast('Lỗi kết nối: ' + err.message, 'error'))
+    .finally(() => {
+        if (window.LoadingState) LoadingState.hideButton(submitBtn);
+    });
 }
 
 // Comments - Edit comment
@@ -662,7 +709,7 @@ function saveComment(commentId, btn) {
     const content = textarea.value.trim();
     
     if (!content) {
-        alert('Nội dung không được để trống');
+        showToast('Nội dung không được để trống', 'warning');
         return;
     }
     
@@ -677,31 +724,46 @@ function saveComment(commentId, btn) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            location.reload();
+            showToast('Đã cập nhật bình luận', 'success');
+            setTimeout(() => location.reload(), 500);
         } else {
-            alert(data.error || 'Có lỗi xảy ra');
+            showToast(data.error || 'Có lỗi xảy ra', 'error');
         }
     })
-    .catch(err => alert('Lỗi kết nối: ' + err.message));
+    .catch(err => showToast('Lỗi kết nối: ' + err.message, 'error'));
 }
 
 // Comments - Delete comment
-function deleteComment(commentId) {
-    if (!confirm('Bạn có chắc muốn xóa bình luận này?')) return;
+async function deleteComment(commentId) {
+    const confirmed = await ConfirmDialog.confirmDelete('bình luận này');
+    if (!confirmed) return;
     
-    fetch('/php/api/comments.php?comment_id=' + commentId, {
-        method: 'DELETE',
-        headers: { 'Accept': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(data => {
+    LoadingState.showFullPage('Đang xóa...');
+    
+    try {
+        const response = await fetch('/php/api/comments.php?comment_id=' + commentId, {
+            method: 'DELETE',
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await response.json();
+        
         if (data.success) {
-            location.reload();
+            // Remove comment from DOM without reload
+            const commentEl = document.querySelector(`[data-comment-id="${commentId}"]`);
+            if (commentEl) {
+                commentEl.remove();
+                showToast('Đã xóa bình luận', 'success');
+            } else {
+                location.reload();
+            }
         } else {
-            alert(data.error || 'Có lỗi xảy ra');
+            showToast(data.error || 'Có lỗi xảy ra', 'error');
         }
-    })
-    .catch(err => alert('Lỗi kết nối: ' + err.message));
+    } catch (err) {
+        showToast('Lỗi kết nối: ' + err.message, 'error');
+    } finally {
+        LoadingState.hideFullPage();
+    }
 }
 
 // Comments - Reply functions
@@ -739,7 +801,7 @@ function submitReply(parentId, replyToName = null) {
     let content = textarea.value.trim();
     
     if (!content) {
-        alert('Vui lòng nhập nội dung trả lời');
+        showToast('Vui lòng nhập nội dung trả lời', 'warning');
         return;
     }
     
@@ -773,12 +835,13 @@ function submitReply(parentId, replyToName = null) {
     })
     .then(data => {
         if (data.success) {
-            location.reload();
+            showToast('Đã gửi trả lời', 'success');
+            setTimeout(() => location.reload(), 500);
         } else {
-            alert(data.error || 'Có lỗi xảy ra');
+            showToast(data.error || 'Có lỗi xảy ra', 'error');
         }
     })
-    .catch(err => alert('Lỗi kết nối: ' + err.message));
+    .catch(err => showToast('Lỗi kết nối: ' + err.message, 'error'));
 }
 
 // Checklist - Edit title
@@ -818,11 +881,11 @@ function saveChecklistTitle(itemId, input) {
             input.classList.add('hidden');
             titleEl.classList.remove('hidden');
         } else {
-            alert(data.error || 'Có lỗi xảy ra');
+            showToast(data.error || 'Có lỗi xảy ra', 'error');
         }
     })
     .catch(err => {
-        alert('Lỗi kết nối: ' + err.message);
+        showToast('Lỗi kết nối: ' + err.message, 'error');
         input.classList.add('hidden');
         titleEl.classList.remove('hidden');
     });

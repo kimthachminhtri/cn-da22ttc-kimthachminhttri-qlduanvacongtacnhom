@@ -15,9 +15,123 @@ View::section('content');
                 <h1 class="text-2xl font-bold">Chào mừng trở lại, Admin! 👋</h1>
                 <p class="text-blue-100 mt-1">Đây là tổng quan hệ thống của bạn hôm nay.</p>
             </div>
-            <div class="hidden md:block">
-                <p class="text-sm text-blue-200"><?= date('l, d/m/Y') ?></p>
-                <p class="text-2xl font-bold"><?= date('H:i') ?></p>
+            <div class="flex items-center gap-4">
+                <!-- Export Reports Dropdown -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" 
+                            class="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white/20 hover:bg-white/30 rounded-lg transition-colors">
+                        <i data-lucide="download" class="h-4 w-4"></i>
+                        Xuất báo cáo
+                        <i data-lucide="chevron-down" class="h-4 w-4"></i>
+                    </button>
+                    <div x-show="open" @click.away="open = false" x-cloak
+                         class="absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-20 text-gray-700 max-h-96 overflow-y-auto">
+                        <!-- Excel Section -->
+                        <div class="px-3 py-2 border-b border-gray-100">
+                            <p class="text-xs font-semibold text-gray-400 uppercase">📊 Xuất Excel (.xlsx)</p>
+                        </div>
+                        <a href="/php/api/admin-export.php?type=users&format=excel" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="users" class="h-4 w-4 text-blue-600"></i>
+                            Danh sách người dùng
+                        </a>
+                        <a href="/php/api/admin-export.php?type=projects&format=excel" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="folder" class="h-4 w-4 text-green-600"></i>
+                            Danh sách dự án
+                        </a>
+                        <a href="/php/api/admin-export.php?type=tasks&format=excel" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="check-square" class="h-4 w-4 text-yellow-600"></i>
+                            Danh sách công việc
+                        </a>
+                        <a href="/php/api/admin-export.php?type=documents&format=excel" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="file-text" class="h-4 w-4 text-purple-600"></i>
+                            Danh sách tài liệu
+                        </a>
+                        <a href="/php/api/admin-export.php?type=overdue_tasks&format=excel" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="alert-triangle" class="h-4 w-4 text-red-600"></i>
+                            Công việc quá hạn
+                        </a>
+                        
+                        <!-- Summary Reports -->
+                        <div class="px-3 py-2 border-t border-b border-gray-100 mt-1">
+                            <p class="text-xs font-semibold text-gray-400 uppercase">📈 Báo cáo tổng hợp</p>
+                        </div>
+                        <a href="/php/api/admin-export.php?type=tasks_summary&format=excel" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="bar-chart-3" class="h-4 w-4 text-purple-600"></i>
+                            Tổng hợp theo dự án
+                        </a>
+                        <a href="/php/api/admin-export.php?type=team_performance&format=excel" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="trending-up" class="h-4 w-4 text-indigo-600"></i>
+                            Hiệu suất nhân viên
+                        </a>
+                        <a href="/php/api/admin-export.php?type=project_members&format=excel" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="users-2" class="h-4 w-4 text-cyan-600"></i>
+                            Thành viên dự án
+                        </a>
+                        <a href="/php/api/admin-export.php?type=dashboard_summary&format=excel" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="layout-dashboard" class="h-4 w-4 text-orange-600"></i>
+                            Tổng quan hệ thống
+                        </a>
+                        
+                        <!-- PDF Section -->
+                        <div class="px-3 py-2 border-t border-b border-gray-100 mt-1">
+                            <p class="text-xs font-semibold text-gray-400 uppercase">📄 Xuất PDF</p>
+                        </div>
+                        <a href="/php/api/admin-export.php?type=users&format=pdf" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="file-text" class="h-4 w-4 text-red-600"></i>
+                            Báo cáo người dùng
+                        </a>
+                        <a href="/php/api/admin-export.php?type=projects&format=pdf" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="file-text" class="h-4 w-4 text-red-600"></i>
+                            Báo cáo dự án
+                        </a>
+                        <a href="/php/api/admin-export.php?type=tasks_summary&format=pdf" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="file-text" class="h-4 w-4 text-red-600"></i>
+                            Tổng hợp công việc
+                        </a>
+                        <a href="/php/api/admin-export.php?type=team_performance&format=pdf" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="file-text" class="h-4 w-4 text-red-600"></i>
+                            Hiệu suất nhân viên
+                        </a>
+                        <a href="/php/api/admin-export.php?type=overdue_tasks&format=pdf" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="file-text" class="h-4 w-4 text-red-600"></i>
+                            Công việc quá hạn
+                        </a>
+                        
+                        <!-- Activity Logs -->
+                        <div class="px-3 py-2 border-t border-gray-100 mt-1">
+                            <p class="text-xs font-semibold text-gray-400 uppercase">📋 Nhật ký</p>
+                        </div>
+                        <a href="/php/api/admin-export.php?type=activity_logs&format=excel" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="activity" class="h-4 w-4 text-gray-600"></i>
+                            Activity Logs (Excel)
+                        </a>
+                        <a href="/php/api/admin-export.php?type=activity_logs&format=csv" target="_blank"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-gray-50">
+                            <i data-lucide="file" class="h-4 w-4 text-gray-600"></i>
+                            Activity Logs (CSV)
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="hidden md:block text-right">
+                    <p class="text-sm text-blue-200"><?= date('l, d/m/Y') ?></p>
+                    <p class="text-2xl font-bold"><?= date('H:i') ?></p>
+                </div>
             </div>
         </div>
     </div>

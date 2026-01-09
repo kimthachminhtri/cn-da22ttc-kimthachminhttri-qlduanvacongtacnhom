@@ -125,34 +125,40 @@ class User extends Model
      */
     public function uploadAvatar(string $userId, array $file): array
     {
-        // Validate file
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        // Validate file using server-side MIME detection
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
         $maxSize = 2 * 1024 * 1024; // 2MB
-        
-        if (!in_array($file['type'], $allowedTypes)) {
-            return ['success' => false, 'message' => 'Chỉ chấp nhận file JPG, PNG hoặc WebP'];
-        }
-        
+
         if ($file['size'] > $maxSize) {
             return ['success' => false, 'message' => 'File quá lớn. Tối đa 2MB'];
         }
-        
+
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($file['tmp_name']) ?: ($file['type'] ?? '');
+
+        if (!in_array($mime, $allowedTypes)) {
+            return ['success' => false, 'message' => 'Chỉ chấp nhận file ảnh JPG, PNG, WebP, GIF'];
+        }
+
         // Create upload directory
         $uploadDir = __DIR__ . '/../../uploads/avatars/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
-        
-        // Generate unique filename
-        $ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = $userId . '_' . time() . '.' . $ext;
+
+        // Derive extension from MIME
+        $mimeToExt = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp', 'image/gif' => 'gif'];
+        $ext = $mimeToExt[$mime] ?? pathinfo($file['name'], PATHINFO_EXTENSION);
+
+        // Generate secure filename
+        $filename = $userId . '_' . bin2hex(random_bytes(8)) . '.' . $ext;
         $filepath = $uploadDir . $filename;
-        
-        // Move uploaded file
+
         if (!move_uploaded_file($file['tmp_name'], $filepath)) {
             return ['success' => false, 'message' => 'Không thể lưu file'];
         }
-        
+        @chmod($filepath, 0644);
+
         // Update database
         $avatarUrl = 'uploads/avatars/' . $filename;
         $result = $this->update($userId, ['avatar_url' => $avatarUrl]);
@@ -160,7 +166,7 @@ class User extends Model
         if ($result) {
             return ['success' => true, 'url' => $avatarUrl];
         }
-        
+
         // Cleanup on failure
         @unlink($filepath);
         return ['success' => false, 'message' => 'Không thể cập nhật database'];
